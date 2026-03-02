@@ -34,8 +34,10 @@ class Title(models.Model):
         default=TitleCategory.SERIES)
     cover = models.URLField()
     start_watch = models.DateField()
-    end_watch = models.DateField()
+    end_watch = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=5, choices=TitleStatus.choices, default=TitleStatus.DONE)
     review = models.TextField()
     rating = models.DecimalField(max_digits=3, decimal_places=1,
         validators=[MinValueValidator(0), MaxValueValidator(10), rating_validator])
+
+

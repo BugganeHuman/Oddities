@@ -1,0 +1,28 @@
+from django.db import models
+
+
+class WatchlistItem(models.Model):
+
+    class WatchlistItemCategory(models.TextChoices):
+        MOVIE = "MV", "Movie"
+        SERIES = "SR", "Series"
+        ANIME = "ANM", "Anime"
+        CARTOON = "CRT", "Cartoon"
+        LEGAL = "LG", "Legal case"
+        VIDEO = "VD", "Youtube video ot other"
+        READING = "READ", "Written content"
+
+    name = models.CharField(max_length=250)
+    link = models.URLField(null=True, blank=True)
+    year_start = models.PositiveIntegerField()
+    year_end = models.PositiveIntegerField(null=True, blank=True)
+    category = models.CharField(max_length=7,choices=WatchlistItemCategory.choices,
+        default=WatchlistItemCategory.SERIES)
+    director = models.CharField(max_length=150, null=True, blank=True)
+    synopsis = models.TextField(max_length=600, null=True, blank=True)
+    runtime = models.PositiveIntegerField(help_text="run time in minutes for movie",
+        null=True, blank=True)
+    episodes = models.PositiveIntegerField(help_text="number of episodes for series",
+        null=True, blank=True)
+    seasons = models.PositiveIntegerField(help_text="number of seasons for series",
+        null=True, blank=True)
