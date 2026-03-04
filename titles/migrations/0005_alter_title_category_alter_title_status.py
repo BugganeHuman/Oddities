@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0004_title_category_title_status_alter_title_rating'),
+        ('titles', '0004_title_category_title_status_alter_title_rating'),
     ]
 
     operations = [

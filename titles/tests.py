@@ -42,7 +42,7 @@ class TitleApiTests(APITestCase):
             "end_watch": "2026-03-03",
             "status": "DONE",
             "review": "ok 6.5",
-            "rating": "6.5",
+            "rating": "6.5"
         }
 
         act = self.client.post("/api/titles/title/", el)

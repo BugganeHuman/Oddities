@@ -2,6 +2,10 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
 from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 
 def rating_validator(value):
     if value % Decimal("0.5") != 0:
@@ -40,4 +44,4 @@ class Title(models.Model):
     rating = models.DecimalField(max_digits=3, decimal_places=1,
         validators=[MinValueValidator(0), MaxValueValidator(10), rating_validator])
 
-
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="titles")

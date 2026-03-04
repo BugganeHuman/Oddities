@@ -20,7 +20,7 @@ class WatchlistTest(APITestCase):
         "synopsis": "",
         "runtime": "",
         "episodes": "",
-        "seasons": "",
+        "seasons": ""
         }
         response = self.client.post("/api/watchlist/item/", el)
 

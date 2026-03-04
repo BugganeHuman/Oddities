@@ -10,3 +10,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     authentication_classes = [JWTAuthentication]
 
+    def get_queryset(self):
+        return Title.objects.filter(owner=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)

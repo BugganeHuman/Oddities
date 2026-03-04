@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0002_alter_title_end_watch'),
+        ('titles', '0002_alter_title_end_watch'),
     ]
 
     operations = [

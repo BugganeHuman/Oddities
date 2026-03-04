@@ -1,5 +1,7 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 class WatchlistItem(models.Model):
 
@@ -26,3 +28,5 @@ class WatchlistItem(models.Model):
         null=True, blank=True)
     seasons = models.PositiveIntegerField(help_text="number of seasons for series",
         null=True, blank=True)
+
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="watchlist")

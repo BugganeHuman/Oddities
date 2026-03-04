@@ -3,6 +3,7 @@ from .models import WatchlistItem
 
 
 class WatchlistItemSerializer(serializers.ModelSerializer):
+    owner = serializers.ReadOnlyField(source="owner.username")
     class Meta:
         model = WatchlistItem
         fields = "__all__"
