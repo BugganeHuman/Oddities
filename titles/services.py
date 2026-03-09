@@ -26,10 +26,15 @@ def get_id(title_name, year=None):
         for title in results:
             date = title.get('release_date') or title.get('first_air_date')
             if date and date.startswith(str(year)):
+                title_base_data = requests.get(f"{BASE_URL}/{title['media_type']}/{title['id']}",
+                                                headers=headers).json()
                 results = {
                     "title_id" : title['id'],
-                    "media_type" : title['media_type']
+                    "media_type" : title['media_type'],
+                    "title_base_data" : title_base_data
                 }
+                # возможно стоит так же возвращать джейсон /{data['media_type']}/{data['title_id']}
+                # и реюзать в некоторых функциях
                 return results
 
     return None
@@ -37,14 +42,9 @@ def get_id(title_name, year=None):
 def get_cover(data):
     print("executing get_cover")
 
-    url = f"{BASE_URL}/{data['media_type']}/{data['title_id']}"
+    result = data['title_base_data'].get("poster_path")
 
-    response = requests.get(url, headers=headers)
-
-    if response.status_code == 200:
-        result = response.json().get("poster_path")
-
-        if result:
+    if result:
             cover = f"https://image.tmdb.org/t/p/w500{result}"
             print(cover)
             return cover
@@ -73,10 +73,40 @@ def get_director(data):
 
 def get_year_end(data):
     if data['media_type'] == 'tv':
-        url = f'{BASE_URL}/tv/{data['title_id']}'
-        response = requests.get(url, headers=headers).json()
-        year_end = response.get('last_air_date')
+        year_end = data['title_base_data'].get('last_air_date')
         if year_end:
             return year_end[:4]
+
+    return None
+
+def get_overview(data):
+    overview = data['title_base_data'].get('overview')
+
+    if overview:
+        return overview
+
+    return None
+
+def get_runtime(data):
+    if data['media_type'] == 'movie':
+        run_time = data['title_base_data'].get('runtime')
+
+        if run_time:
+            return run_time
+
+    return None
+
+def get_seasons_and_episodes(data):
+    print("executing get_seasons_and_episodes")
+    seasons = data['title_base_data'].get('number_of_seasons')
+    episodes = data['title_base_data'].get('number_of_episodes')
+
+    if seasons and episodes:
+        volume = {
+            'seasons' : seasons,
+            'episodes' : episodes
+        }
+        print(volume)
+        return volume
 
     return None

@@ -19,15 +19,8 @@ class WatchlistTest(APITestCase):
 
         el = {
         "name": "Ozark",
-        "link": "",
         "year_start": 2017,
-        "year_end": "",
         "category": "SR",
-        "director": "",
-        "synopsis": "",
-        "runtime": "",
-        "episodes": "",
-        "seasons": "",
         "owner" : self.user
         }
         response = self.client.post("/api/watchlist/item/", el)

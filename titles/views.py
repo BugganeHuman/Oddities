@@ -20,7 +20,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         return Title.objects.filter(owner=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+
         title_name = self.request.data.get('name')
         year_start = self.request.data.get('year_start')
         year_end = self.request.data.get('year_end')
@@ -39,7 +39,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         if not year_end:
             year_end = get_year_end(data)
 
-        serializer.save(cover=cover, director=director, year_end=year_end)
+        serializer.save(owner=self.request.user, cover=cover, director=director, year_end=year_end)
 
         """
         тут надо если какое то полу пусто то его осхранить типо 

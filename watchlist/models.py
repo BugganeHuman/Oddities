@@ -21,7 +21,7 @@ class WatchlistItem(models.Model):
     category = models.CharField(max_length=7,choices=WatchlistItemCategory.choices,
         default=WatchlistItemCategory.SERIES)
     director = models.CharField(max_length=150, null=True, blank=True)
-    synopsis = models.TextField(max_length=600, null=True, blank=True)
+    synopsis = models.TextField(max_length=2000, null=True, blank=True)
     runtime = models.PositiveIntegerField(help_text="run time in minutes for movie",
         null=True, blank=True)
     episodes = models.PositiveIntegerField(help_text="number of episodes for series",
