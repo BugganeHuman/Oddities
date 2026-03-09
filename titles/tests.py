@@ -22,10 +22,10 @@ class TitleApiTests(APITestCase):
         el = {
             "name": "Ozark",
             "year_start": 2017,
-            "year_end": 2022,
-            "director": "Jason Bateman",
+            "year_end": "",
+            "director": "",
             "category": "SR",
-            "cover": "https://www.themoviedb.org/t/p/w600_and_h900_face/pCGyPVrI9Fzw6rE1Pvi4BIXF6ET.jpg",
+            "cover": "",
             "start_watch": "2026-03-01",
             "end_watch": "2026-03-03",
             "status": "DONE",

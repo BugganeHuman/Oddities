@@ -33,14 +33,14 @@ class Title(models.Model):
     name = models.CharField(max_length=300)
     year_start = models.PositiveIntegerField()
     year_end = models.PositiveIntegerField(null=True, blank=True)
-    director = models.CharField(max_length=200)
+    director = models.CharField(max_length=200, null=True, blank=True)
     category = models.CharField(max_length=7, choices=TitleCategory.choices,
         default=TitleCategory.SERIES)
-    cover = models.URLField()
+    cover = models.URLField(null=True, blank=True)
     start_watch = models.DateField()
     end_watch = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=5, choices=TitleStatus.choices, default=TitleStatus.DONE)
-    review = models.TextField()
+    review = models.TextField(null=True, blank=True)
     rating = models.DecimalField(max_digits=3, decimal_places=1,
         validators=[MinValueValidator(0), MaxValueValidator(10), rating_validator])
 
