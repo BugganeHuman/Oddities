@@ -2,8 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
-    pass
-
+    delete_date = models.DateTimeField(blank=True, null=True)
 """
 
 Регистрация: Данные (email/пароль) превращаются в строку в таблице users_user (пароль при этом хешируется).
