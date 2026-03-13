@@ -1,6 +1,7 @@
 from django.shortcuts import render
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import Title
@@ -8,16 +9,14 @@ from .serializers import TitleSerializer
 from .services import get_id, get_cover, get_director, get_year_end
 from rest_framework.response import Response
 
+
+
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     authentication_classes = [JWTAuthentication]
-    """
-    тоесть сдесь надо чделать что типа - если из полей year_end, director, cover
-    что не заполнено то делается запрос к API TMDB типо дай например cover для фильма где 
-    название = title и год выпуска - year_start (если вставил)
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
-    """
 
     def get_queryset(self):
         return Title.objects.filter(owner=self.request.user)
@@ -44,11 +43,6 @@ class TitleViewSet(viewsets.ModelViewSet):
 
         serializer.save(owner=self.request.user, cover=cover, director=director, year_end=year_end)
 
-        """
-        тут надо если какое то полу пусто то его осхранить типо 
-        if not cover:
-            serializer.save(cover=get_cover(title, year_start)
-        """
 
 
 @api_view(['GET'])
@@ -59,7 +53,7 @@ def get_revisits(request):
 
 @api_view(['GET'])
 def order_by(request):
-    order = request.query_params.get('order_by')
+    order = request.query_params.get('ordering')
     results = None
     if order == "rating":
         results = Title.objects.order_by('rating')

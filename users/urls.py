@@ -1,11 +1,12 @@
 from django.urls import path, include
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import RegisterView, CorrectTokenObtainPairView, delete_user
+from .views import RegisterView, CorrectTokenObtainPairView, delete_user, toggle_visibility
 urlpatterns = [
     path("auth/login/", CorrectTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("register/", RegisterView.as_view(), name="register"),
-    path('delete_user/', delete_user, name='delete_user')
+    path('delete_user/', delete_user, name='delete_user'),
+    path('toggle_visibility/', toggle_visibility, name='toggle_visibility')
 ]
 

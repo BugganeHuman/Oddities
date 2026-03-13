@@ -57,6 +57,22 @@ def delete_user(request):
     return None
 
 
+@api_view(['PUT'])
+def toggle_visibility(request):
+    password = request.data.get("password")
+    visibility = request.data.get("visibility")
+    user = request.user
+    if request.user.check_password(password):
+        if visibility == 'public':
+            user.is_public = True
+            user.save()
+            return Response({"status" : "visibility changed"})
+        elif visibility == 'private':
+            user.is_public = False
+            user.save()
+            return Response({"status": "visibility changed"})
+    return Response({"status": "error"})
+
 """
 Middleware → URL → Authentication → Permissions → View → Serializer → Database.
 """

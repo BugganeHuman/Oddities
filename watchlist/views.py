@@ -1,9 +1,14 @@
+from django.template.defaultfilters import upper
 from rest_framework import viewsets
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .serializers import WatchlistItemSerializer
 from .models import WatchlistItem
 from titles.services import (get_id, get_director, get_year_end, get_overview,
                             get_runtime, get_seasons_and_episodes)
+from itertools import chain
+
 
 class WatchlistItemViewSet(viewsets.ModelViewSet):
     serializer_class = WatchlistItemSerializer
@@ -49,3 +54,33 @@ class WatchlistItemViewSet(viewsets.ModelViewSet):
         serializer.save(owner = self.request.user, year_end = year_end,
                         director = director, synopsis=synopsis, runtime=runtime,
                         seasons=seasons, episodes=episodes)
+
+
+@api_view(['GET'])
+def order_by(request):
+    order = request.query_params.get('ordering')
+    results = None
+    if order == 'runtime':
+
+        movies = WatchlistItem.objects.order_by('runtime')
+        tv = WatchlistItem.objects.order_by('episodes')
+        results = WatchlistItemSerializer(movies, many=True).data + WatchlistItemSerializer(tv, many=True).data
+
+    if order == '-runtime':
+
+        movies = WatchlistItem.objects.order_by('-runtime')
+        tv = WatchlistItem.objects.order_by('-episodes')
+        results = WatchlistItemSerializer(tv, many=True).data + WatchlistItemSerializer(movies, many=True).data
+
+    if order in ['year_start', '-year_start']:
+        results = WatchlistItem.objects.order_by(order)
+
+    if order in ['SR', 'MV']:
+        results = WatchlistItem.objects.filter(category=upper(order))
+
+
+
+    if results:
+        return Response(WatchlistItemSerializer(results, many=True).data)
+    else:
+        return Response({'status' : 'nothing to return'})
