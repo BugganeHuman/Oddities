@@ -3,7 +3,8 @@ from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
     delete_date = models.DateTimeField(blank=True, null=True)
-    is_public = models.BooleanField(default=False)
+    titles_is_public = models.BooleanField(default=False)
+    watchlist_is_public = models.BooleanField(default=False)
 """
 
 Регистрация: Данные (email/пароль) превращаются в строку в таблице users_user (пароль при этом хешируется).

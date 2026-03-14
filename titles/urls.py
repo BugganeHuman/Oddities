@@ -8,7 +8,7 @@ router.register(r"title", TitleViewSet)
 urlpatterns = [
     path("", include(router.urls)),
     path('revisits', get_revisits, name='get_revisits'),
-    path('order_by/', order_by, name='order_by')
+    path('order_by/', order_by, name='order_by'),
 ]
 
 

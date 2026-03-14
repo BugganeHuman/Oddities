@@ -8,6 +8,10 @@ from rest_framework.response import Response
 from .models import User
 from django.utils import timezone
 from datetime import timedelta
+from titles.models import Title
+from titles.serializers import TitleSerializer
+from watchlist.models import WatchlistItem
+from watchlist.serializers import WatchlistItemSerializer
 
 
 class RegisterView(generics.CreateAPIView):
@@ -60,18 +64,55 @@ def delete_user(request):
 @api_view(['PUT'])
 def toggle_visibility(request):
     password = request.data.get("password")
-    visibility = request.data.get("visibility")
+    titles_visibility = request.data.get("titles_visibility")
+    watchlist_visibility = request.data.get("watchlist_visibility")
     user = request.user
     if request.user.check_password(password):
-        if visibility == 'public':
-            user.is_public = True
+        if titles_visibility == 'public' and not user.titles_is_public:
+            user.titles_is_public = True
             user.save()
-            return Response({"status" : "visibility changed"})
-        elif visibility == 'private':
+        elif titles_visibility == 'private' and user.titles_is_public:
             user.is_public = False
             user.save()
-            return Response({"status": "visibility changed"})
+
+        if watchlist_visibility == 'public' and not user.watchlist_is_public:
+            user.watchlist_is_public = True
+            user.save()
+        elif watchlist_visibility == 'private' and user.watchlist_is_public:
+            user.watchlist_is_public = False
+            user.save()
+
+        return Response({"status" : "done"})
+
     return Response({"status": "error"})
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_user_records(request):
+    request_username = request.query_params.get('username')
+    try:
+        founded_username = User.objects.get(username=request_username)
+    except Exception:
+        return Response ({"status" : "nothing"})
+
+    user_titles = {}
+    if founded_username.titles_is_public:
+        user_titles = TitleSerializer(Title.objects.filter(
+            owner=founded_username.id), many=True).data
+
+    user_watchlist = {}
+    if founded_username.watchlist_is_public:
+        user_watchlist = WatchlistItemSerializer(WatchlistItem.objects.filter(
+            owner=founded_username.id), many=True).data
+
+    result = {
+        "titles" : user_titles,
+        "watchlist" : user_watchlist
+    }
+
+    return Response(result)
+
 
 """
 Middleware → URL → Authentication → Permissions → View → Serializer → Database.
