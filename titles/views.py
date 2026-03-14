@@ -8,8 +8,6 @@ from .models import Title
 from .serializers import TitleSerializer
 from .services import get_id, get_cover, get_director, get_year_end
 from rest_framework.response import Response
-from users.models import User
-
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -44,17 +42,6 @@ class TitleViewSet(viewsets.ModelViewSet):
 
         serializer.save(owner=self.request.user, cover=cover, director=director, year_end=year_end)
 
-
-"""
-надо что бы чел мог делать запрос /api/titles/get/?username=...
-и тогда сервак принимает и идет в бд users_user,
-ищет того кто username=request.query_params.get('username'),
-и если находит то смотрит is_public и если True то берет его id и идет в titles_title и 
-ищет записи где owner совпадает и их возвращает
-
-тоже самое для watchlist
-
-"""
 
 @api_view(['GET'])
 def get_revisits(request):

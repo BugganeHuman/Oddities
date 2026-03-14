@@ -1,7 +1,7 @@
 from rest_framework import generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-from .serializers import RegisterSerializer
+from .serializers import RegisterSerializer, UserSerializer
 from .models import User
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.response import Response
@@ -113,7 +113,35 @@ def get_user_records(request):
 
     return Response(result)
 
+@api_view(['GET'])
+def get_me(request):
+    user = request.user
 
+    username = user.username
+    date_joined = user.date_joined
+    user_id = user.id
+    email = user.email
+
+
+    def get_privacy_email(email_full):
+        email_name = ""
+        for chapter in email_full:
+            if chapter == "@":
+                break
+            email_name += chapter
+        result = (email_name[:len(email_name) // 2] +
+            "*" * (len(email_full) - len(email_name[:len(email_name) // 2])))
+        return result
+
+
+    results = {
+        "username" : username,
+        "email" : get_privacy_email(email),
+        "date_joined" : date_joined,
+        "id" : user_id
+    }
+
+    return Response(results)
 """
 Middleware → URL → Authentication → Permissions → View → Serializer → Database.
 """
