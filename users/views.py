@@ -12,6 +12,7 @@ from titles.models import Title
 from titles.serializers import TitleSerializer
 from watchlist.models import WatchlistItem
 from watchlist.serializers import WatchlistItemSerializer
+from .tasks import hard_delete_user
 
 
 class RegisterView(generics.CreateAPIView):
@@ -26,6 +27,7 @@ class CorrectTokenObtainPairView(TokenObtainPairView):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def ping(request):
+
     return Response ({'status' : 'ok'})
 
 
@@ -35,19 +37,18 @@ def ping(request):
 и тоесть юзер не может зайти на свой аккаунт, он может только перейти по эндпоинту востоновления 
 (он AllowAny) и там ввести юзернейм и пароль и are_you_sure : yes и тогда акк востонавливается
 
-когда пришла дата и время delete_date = +week аккаунт удаляется
+когда пришла дата и время delete_date = +week аккаунт удаляется (запись из бд)
 
 """
 
-@api_view(['POST'])
-def delete_user(request):
+@api_view(['DELETE'])
+def soft_delete_user(request):
     username = request.data.get('username')
     password = request.data.get('password')
     are_you_sure = request.data.get('are_you_sure')
     write_delete = request.data.get('write_delete')
 
     if request.user.check_password(password) and are_you_sure == 'yes' and write_delete == 'delete':
-        deleting_user = None
         try:
             deleting_user = User.objects.get(username=username)
         except Exception:
@@ -55,6 +56,7 @@ def delete_user(request):
         deleting_user.is_active = 'f'
         deleting_user.delete_date = timezone.now() + timedelta(weeks=1)
         deleting_user.save()
+        hard_delete_user.apply_async((deleting_user.id,), countdown=604800)
 
         return Response({'status' : f'user {username} will have deleted after one week. now he is frozen. '
                                     f'for unfreeze and save from deleting go to ...'})
@@ -142,6 +144,17 @@ def get_me(request):
     }
 
     return Response(results)
+
+@api_view(['DELETE'])
+@permission_classes([AllowAny])
+def test_delete_user(request):
+    test_user = User.objects.create_user(username="wt345wwwwqdfq11", password="qwe123Q-333", email="dick@gmail.com")
+    hard_delete_user.apply_async((test_user.id,), countdown=3)
+    print(f"user {test_user.id} deleted")
+    return Response({"status" : "deleted"})
+
+
+
 """
 Middleware → URL → Authentication → Permissions → View → Serializer → Database.
 """
