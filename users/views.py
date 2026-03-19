@@ -56,12 +56,31 @@ def soft_delete_user(request):
         deleting_user.is_active = 'f'
         deleting_user.delete_date = timezone.now() + timedelta(weeks=1)
         deleting_user.save()
-        hard_delete_user.apply_async((deleting_user.id,), countdown=604800)
+        hard_delete_user.apply_async((deleting_user.id,), countdown=604800) #604800
 
         return Response({'status' : f'user {username} will have deleted after one week. now he is frozen. '
                                     f'for unfreeze and save from deleting go to ...'})
-    return None
+    return Response ({"status" : "error"})
 
+
+@api_view(["PATCH"])
+@permission_classes([AllowAny])
+def reactivate_user(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+    are_you_sure = request.data.get('are_you_sure')
+
+    try:
+        user = User.objects.get(username=username)
+    except Exception:
+        return Response({"status" : "error"})
+
+    if user.check_password(password) and are_you_sure == "yes" and not user.is_active :
+        user.is_active = True
+        user.save()
+        return Response({"status": "user reactivated"})
+
+    return Response({"status" : "error"})
 
 @api_view(['PUT'])
 def toggle_visibility(request):
@@ -144,14 +163,6 @@ def get_me(request):
     }
 
     return Response(results)
-
-@api_view(['DELETE'])
-@permission_classes([AllowAny])
-def test_delete_user(request):
-    test_user = User.objects.create_user(username="wt345wwwwqdfq11", password="qwe123Q-333", email="dick@gmail.com")
-    hard_delete_user.apply_async((test_user.id,), countdown=3)
-    print(f"user {test_user.id} deleted")
-    return Response({"status" : "deleted"})
 
 
 
