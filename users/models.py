@@ -5,6 +5,8 @@ class User(AbstractUser):
     delete_date = models.DateTimeField(blank=True, null=True)
     titles_is_public = models.BooleanField(default=False)
     watchlist_is_public = models.BooleanField(default=False)
+    telegram_id = models.BigIntegerField(unique=True, null=True, blank=True)
+
 """
 
 Регистрация: Данные (email/пароль) превращаются в строку в таблице users_user (пароль при этом хешируется).

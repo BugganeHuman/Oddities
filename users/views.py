@@ -134,7 +134,7 @@ def get_user_records(request):
 
     return Response(result)
 
-@api_view(['GET'])
+@api_view(['GET']) #need to rewrite
 def get_me(request):
     user = request.user
 
