@@ -4,3 +4,5 @@ secret.env
 .idea
 *.pyc
 docker-compose.yml
+tg_bot/bot_db/tg_bot_db.db
+tg_bot/bot_db/tg_bot_db.db-journal
