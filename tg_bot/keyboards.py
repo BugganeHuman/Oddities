@@ -66,5 +66,36 @@ def get_title_category_panel():
     )
     return builder.as_markup()
 
+def get_confirm_title_panel():
+    builder = InlineKeyboardBuilder()
 
+    builder.row(
+        types.InlineKeyboardButton(text="🚩 Status", callback_data="title_confirm_panel_status")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="🏁 Start Watch", callback_data="title_confirm_panel_start_watch"),
+        types.InlineKeyboardButton(text="🏆 End Watch", callback_data="title_confirm_panel_end_watch")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu"),
+        types.InlineKeyboardButton(text="🛠 Fix", callback_data="title_confirm_panel_fix"),
+        types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="💾 Save", callback_data="confirm_panel_save")
+    )
 
+    return builder.as_markup()
+
+def get_title_fix_panel():
+    builder = InlineKeyboardBuilder()
+
+    builder.row(
+        types.InlineKeyboardButton(text="🎥 Director", callback_data="title_fix_panel_director"),
+        types.InlineKeyboardButton(text="📆 End Year", callback_data="title_fix_panel_year_end")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu"),
+        types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
+    )
+    return builder.as_markup()

@@ -1,6 +1,7 @@
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
-from keyboards import get_base_add_panel, get_title_category_panel
+from keyboards import (get_base_add_panel, get_title_category_panel,
+                       get_confirm_title_panel, get_title_fix_panel)
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
 
@@ -18,7 +19,7 @@ class AddTitle(StatesGroup):
 
 
 @router.callback_query(F.data == "add_title")
-async def add_title(callback: types.CallbackQuery, state : FSMContext):
+async def add_title(callback: types.CallbackQuery):
     await callback.answer()
     await callback.message.edit_text("Chose the title category",
         reply_markup=get_title_category_panel())
@@ -80,4 +81,10 @@ async def add_rating(message : types.Message, state : FSMContext):
         return
 
     await state.update_data(title_rating=title_rating)
-    await message.answer("check", reply_markup=get_base_add_panel())
+    await message.answer("check", reply_markup=get_confirm_title_panel())
+
+@router.callback_query(F.data == "title_confirm_panel_fix")
+async def go_to_fix_panel(callback : types.CallbackQuery):
+    await callback.answer()
+    await callback.message.edit_text("fix panel", reply_markup=get_title_fix_panel())
+
