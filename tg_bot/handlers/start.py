@@ -3,8 +3,9 @@ import secrets
 import sqlite3
 from aiogram.filters import Command
 import aiohttp
+from aiogram.types import CallbackQuery
 from keyboards import get_start_panel
-
+from kombu.transport.virtual import Message
 
 router = Router()
 
@@ -18,6 +19,20 @@ CURSOR.execute("""CREATE TABLE IF NOT EXISTS users (
                password TEXT NOT NULL,
                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                );""")
+
+
+async def get_start_menu(event):
+
+    if isinstance(event, types.CallbackQuery):
+        await event.message.edit_text("Welcome to Oddities, bot for help you with content",
+                reply_markup=get_start_panel(),parse_mode="Markdown")
+    if isinstance(event, types.Message):
+        await event.answer("Welcome to Oddities, bot for help you with content", reply_markup=get_start_panel(),
+        parse_mode="Markdown")
+
+    #await message.answer("Welcome to Oddities, bot for help you with content", reply_markup=get_start_panel(),
+        #parse_mode="Markdown")
+
 
 @router.message(Command("start"))
 async def start(message: types.Message):
@@ -39,10 +54,13 @@ async def start(message: types.Message):
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=data) as response:
             if response.status in [200, 201]:
-                await message.answer("Hello you have been register", reply_markup=get_start_panel(),
-        parse_mode="Markdown")
+                await get_start_menu(message)
             elif response.status in [400, 409]:
-                await message.answer("Welcome back", reply_markup=get_start_panel(),
-        parse_mode="Markdown")
+                await get_start_menu(message)
             else:
                 await message.answer(f"error in register ")
+
+@router.callback_query(F.data == "to_start_menu")
+async def to_start_menu(callback : types.CallbackQuery):
+    await callback.answer()
+    await get_start_menu(callback)

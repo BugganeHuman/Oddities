@@ -3,6 +3,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -23,6 +24,7 @@ class Title(models.Model):
         LEGAL = "LG", "Legal case"
         VIDEO = "VD", "Youtube video ot other"
         READING = "READ", "Written content"
+        OTHER = "OTHER", "Other"
 
     class TitleStatus(models.TextChoices):
         DONE = "DONE", "Done"
@@ -35,9 +37,9 @@ class Title(models.Model):
     year_end = models.PositiveIntegerField(null=True, blank=True)
     director = models.CharField(max_length=200, null=True, blank=True)
     category = models.CharField(max_length=7, choices=TitleCategory.choices,
-        default=TitleCategory.SERIES)
+        default=TitleCategory.MOVIE)
     cover = models.URLField(null=True, blank=True)
-    start_watch = models.DateField()
+    start_watch = models.DateField(default=timezone.now)
     end_watch = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=5, choices=TitleStatus.choices, default=TitleStatus.DONE)
     review = models.TextField(null=True, blank=True)
