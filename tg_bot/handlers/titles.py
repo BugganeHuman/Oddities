@@ -4,6 +4,8 @@ from keyboards import (get_base_add_panel, get_title_category_panel,
                        get_confirm_title_panel, get_title_fix_panel)
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
+from utils import push_to_history
+
 
 router = Router()
 
@@ -19,8 +21,9 @@ class AddTitle(StatesGroup):
 
 
 @router.callback_query(F.data == "add_title")
-async def add_title(callback: types.CallbackQuery):
+async def add_title(callback: types.CallbackQuery, state : FSMContext):
     await callback.answer()
+    await push_to_history(state, "START_MENU")
     await callback.message.edit_text("Chose the title category",
         reply_markup=get_title_category_panel())
 
@@ -28,6 +31,7 @@ async def add_title(callback: types.CallbackQuery):
 async def add_title_category(callback: types.CallbackQuery, state : FSMContext):
     chosen_category = callback.data
     await callback.answer()
+    await push_to_history(state, "TITLE_PANEL_ADD_CATEGORY")
     await state.update_data(category=chosen_category)
     await state.set_state(AddTitle.waiting_for_name)
     await callback.message.answer("Write the title's name",
@@ -36,6 +40,7 @@ async def add_title_category(callback: types.CallbackQuery, state : FSMContext):
 @router.message(AddTitle.waiting_for_name)
 async def add_title_name(message : types.Message, state : FSMContext):
     title_name = message.text
+    await push_to_history(state, "TITLE_STATE_WAITING_FOR_NAME")
     await state.update_data(title_name=title_name)
     await message.answer("Write title's start year", reply_markup=get_base_add_panel())
     await state.set_state(AddTitle.waiting_for_year_start)
@@ -51,6 +56,7 @@ async def add_start_year(message : types.Message, state : FSMContext):
         await state.set_state(AddTitle.waiting_for_year_start)
         return
 
+    await push_to_history(state, "TITLE_STATE_WAITING_FOR_YEAR_START")
     await state.update_data(title_start_year=title_start_year)
     #data = await state.get_data()
     await message.answer("Write the review for title", reply_markup=get_base_add_panel())
@@ -59,6 +65,7 @@ async def add_start_year(message : types.Message, state : FSMContext):
 @router.message(AddTitle.waiting_for_review)
 async def add_review(message : types.Message, state : FSMContext):
     title_review = message.text
+    await push_to_history(state, "TITLE_STATE_WAITING_FOR_REVIEW")
     await state.update_data(title_review=title_review)
     await message.answer("write the rating for title", reply_markup=get_base_add_panel())
     await state.set_state(AddTitle.waiting_for_rating)
@@ -80,11 +87,14 @@ async def add_rating(message : types.Message, state : FSMContext):
         await state.set_state(AddTitle.waiting_for_rating)
         return
 
+    await push_to_history(state, "TITLE_STATE_WAITING_FOR_RATING")
+
     await state.update_data(title_rating=title_rating)
     await message.answer("check", reply_markup=get_confirm_title_panel())
 
 @router.callback_query(F.data == "title_confirm_panel_fix")
-async def go_to_fix_panel(callback : types.CallbackQuery):
+async def go_to_fix_panel(callback : types.CallbackQuery, state : FSMContext):
+    await push_to_history(state, "CONFIRM_TITLE_PANEL")
     await callback.answer()
     await callback.message.edit_text("fix panel", reply_markup=get_title_fix_panel())
 

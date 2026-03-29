@@ -3,9 +3,12 @@ import secrets
 import sqlite3
 from aiogram.filters import Command
 import aiohttp
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
-from keyboards import get_start_panel
+from keyboards import get_start_panel, get_confirm_title_panel
 from kombu.transport.virtual import Message
+from aiogram.fsm.state import StatesGroup, State
+
 
 router = Router()
 
@@ -60,7 +63,3 @@ async def start(message: types.Message):
             else:
                 await message.answer(f"error in register ")
 
-@router.callback_query(F.data == "to_start_menu")
-async def to_start_menu(callback : types.CallbackQuery):
-    await callback.answer()
-    await get_start_menu(callback)
