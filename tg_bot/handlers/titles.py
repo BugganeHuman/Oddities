@@ -1,10 +1,12 @@
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 from keyboards import (get_base_add_panel, get_title_category_panel,
-                       get_confirm_title_panel, get_title_fix_panel)
+                       get_confirm_title_panel, get_title_fix_panel,
+                       get_title_status_panel)
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
 from utils import push_to_history
+from datetime import datetime
 
 
 router = Router()
@@ -12,8 +14,8 @@ router = Router()
 class AddTitle(StatesGroup):
     waiting_for_name = State()
     waiting_for_year_start = State()
-    waiting_for_review = State()
     waiting_for_year_end = State()
+    waiting_for_review = State()
     waiting_for_director = State()
     waiting_for_start_watch = State()
     waiting_for_end_watch = State()
@@ -28,11 +30,11 @@ async def add_title(callback: types.CallbackQuery, state : FSMContext):
         reply_markup=get_title_category_panel())
 
 @router.callback_query(F.data.contains("title_category_"))
-async def add_title_category(callback: types.CallbackQuery, state : FSMContext):
+async def choose_category(callback: types.CallbackQuery, state : FSMContext):
     chosen_category = callback.data
     await callback.answer()
     await push_to_history(state, "TITLE_PANEL_ADD_CATEGORY")
-    await state.update_data(category=chosen_category)
+    await state.update_data(title_category=chosen_category)
     await state.set_state(AddTitle.waiting_for_name)
     await callback.message.answer("Write the title's name",
         reply_markup=get_base_add_panel())
@@ -93,8 +95,100 @@ async def add_rating(message : types.Message, state : FSMContext):
     await message.answer("check", reply_markup=get_confirm_title_panel())
 
 @router.callback_query(F.data == "title_confirm_panel_fix")
-async def go_to_fix_panel(callback : types.CallbackQuery, state : FSMContext):
-    await push_to_history(state, "CONFIRM_TITLE_PANEL")
+async def run_fix_panel(callback : types.CallbackQuery, state : FSMContext):
     await callback.answer()
+    await push_to_history(state, "CONFIRM_TITLE_PANEL")
     await callback.message.edit_text("fix panel", reply_markup=get_title_fix_panel())
 
+@router.callback_query(F.data == "title_confirm_panel_status")
+async def show_status_panel(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    await push_to_history(state, "CONFIRM_TITLE_PANEL")
+    await callback.message.edit_text("status panel", reply_markup=get_title_status_panel())
+
+@router.callback_query(F.data.contains("title_status_panel_"))
+async def choose_status(callback: types.CallbackQuery, state : FSMContext):
+    chosen_status = callback.data
+    await callback.answer()
+    await push_to_history(state, "TITLE_STATUS_PANEL")
+    await state.update_data(title_status=chosen_status)
+    await callback.message.edit_text("check", reply_markup=get_confirm_title_panel())
+
+@router.callback_query(F.data == "title_confirm_panel_start_watch")
+async def run_add_start_watch(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    await push_to_history(state, "CONFIRM_TITLE_PANEL")
+    await callback.message.answer("write date of start watch (for example 21.01.2026)",
+                    reply_markup=get_base_add_panel())
+    await state.set_state(AddTitle.waiting_for_start_watch)
+
+@router.message(AddTitle.waiting_for_start_watch)
+async def add_start_watch(message : types.Message, state : FSMContext):
+    start_watch_date = message.text
+    try:
+        correct_date = datetime.strptime(start_watch_date, "%d.%m.%Y").date()
+        await push_to_history(state, "TITLE_STATE_WAITING_FOR_START_WATCH")
+        await state.update_data(title_start_watch=correct_date)
+        await message.answer("check", reply_markup=get_confirm_title_panel())
+
+    except Exception:
+        await message.answer("write correct date dd.mm.yyyy for example 21.01.2026",
+                    reply_markup=get_base_add_panel())
+        await state.set_state(AddTitle.waiting_for_start_watch)
+
+@router.callback_query(F.data == "title_confirm_panel_end_watch")
+async def run_add_end_watch(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    await push_to_history(state, "CONFIRM_TITLE_PANEL")
+    await callback.message.answer("write date of end watch (for example 03.02.2026)",
+                    reply_markup=get_base_add_panel())
+    await state.set_state(AddTitle.waiting_for_end_watch)
+
+@router.message(AddTitle.waiting_for_end_watch)
+async def add_end_watch(message : types.Message, state : FSMContext):
+    end_watch_date = message.text
+    try:
+        correct_date = datetime.strptime(end_watch_date, "%d.%m.%Y").date()
+        await push_to_history(state, "TITLE_STATE_WAITING_FOR_END_WATCH")
+        await state.update_data(title_end_watch=correct_date)
+        await message.answer("check", reply_markup=get_confirm_title_panel())
+
+    except Exception:
+        await message.answer("write correct date dd.mm.yyyy for example 11.04.2026",
+                    reply_markup=get_base_add_panel())
+        await state.set_state(AddTitle.waiting_for_end_watch)
+
+@router.callback_query(F.data == "title_fix_panel_director")
+async def run_add_director (callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    await push_to_history(state, "TITLE_CONFIRM_PANEL_FIX")
+    await callback.message.edit_text("Write the name of Director", reply_markup=get_base_add_panel())
+    await state.set_state(AddTitle.waiting_for_director)
+
+@router.message(AddTitle.waiting_for_director)
+async def add_director(message : types.Message, state : FSMContext):
+    director = message.text
+    await push_to_history(state, "TITLE_STATE_WAITING_FOR_DIRECTOR")
+    await state.update_data(title_director=director)
+    await message.answer("fix panel", reply_markup=get_title_fix_panel())
+
+@router.callback_query(F.data == "title_fix_panel_year_end")
+async def run_add_year_end(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    await push_to_history(state, "TITLE_CONFIRM_PANEL_FIX")
+    await callback.message.edit_text("Write the title's end year",
+                reply_markup=get_base_add_panel())
+    await state.set_state(AddTitle.waiting_for_year_end)
+
+@router.message(AddTitle.waiting_for_year_end)
+async def add_year_end(message : types.Message, state : FSMContext):
+    year_end = message.text
+    try:
+        Decimal(year_end)
+        await push_to_history(state, "TITLE_STATE_WAITING_FOR_YEAR_END")
+        await state.update_data(title_year_end=year_end)
+        await message.answer("fix panel", reply_markup=get_title_fix_panel())
+    except Exception:
+        await message.answer("Write the correct title's end year for example 1997",
+                                         reply_markup=get_base_add_panel())
+        await state.set_state(AddTitle.waiting_for_year_end)

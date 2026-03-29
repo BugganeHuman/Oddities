@@ -3,7 +3,8 @@ from aiogram.filters import Command
 import aiohttp
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
-from keyboards import get_start_panel, get_confirm_title_panel
+from keyboards import (get_start_panel, get_confirm_title_panel,
+                       get_title_status_panel)
 from aiogram.fsm.state import StatesGroup, State
 from handlers.start import get_start_menu
 from handlers.titles import add_title
@@ -56,5 +57,24 @@ async def to_back(callback : types.CallbackQuery, state : FSMContext):
                 reply_markup=get_title_category_panel())
     elif last_panel == "START_MENU":
         await to_start_menu(callback)
+    elif last_panel == "TITLE_STATUS_PANEL":
+        await callback.message.edit_text("status panel", reply_markup=get_title_status_panel())
+    elif last_panel == "TITLE_STATE_WAITING_FOR_START_WATCH":
+        await callback.message.answer("write date of start watch (for example 21.01.2026)",
+                                      reply_markup=get_base_add_panel())
+        await state.set_state(AddTitle.waiting_for_start_watch)
+    elif last_panel == "TITLE_STATE_WAITING_FOR_END_WATCH":
+        await callback.message.answer("write date of end watch (for example 03.02.2026)",
+                                      reply_markup=get_base_add_panel())
+        await state.set_state(AddTitle.waiting_for_end_watch)
+    elif last_panel == "TITLE_STATE_WAITING_FOR_DIRECTOR":
+        await callback.message.answer("Write the name of Director", reply_markup=get_base_add_panel())
+        await state.set_state(AddTitle.waiting_for_director)
+    elif last_panel == "TITLE_CONFIRM_PANEL_FIX":
+        await callback.message.edit_text("fix panel", reply_markup=get_title_fix_panel())
+    elif last_panel == "TITLE_STATE_WAITING_FOR_YEAR_END":
+        await callback.message.edit_text("Write the title's end year",
+                                         reply_markup=get_base_add_panel())
+        await state.set_state(AddTitle.waiting_for_year_end)
 
 

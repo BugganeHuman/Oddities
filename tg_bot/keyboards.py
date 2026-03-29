@@ -99,3 +99,24 @@ def get_title_fix_panel():
         types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
     )
     return builder.as_markup()
+
+def get_title_status_panel():
+    builder = InlineKeyboardBuilder()
+
+    builder.row(
+        types.InlineKeyboardButton(text="✅ DONE", callback_data="title_status_panel_DONE")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="🗑 DROPPED", callback_data="title_status_panel_DROPPED")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="⏳ REVISIT or will FINISH", callback_data="title_status_panel_REVISIT")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="🍿 WATCHING", callback_data="title_status_panel_WATCHING")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu"),
+        types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
+    )
+    return builder.as_markup()

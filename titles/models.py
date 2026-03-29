@@ -39,10 +39,10 @@ class Title(models.Model):
     category = models.CharField(max_length=7, choices=TitleCategory.choices,
         default=TitleCategory.MOVIE)
     cover = models.URLField(null=True, blank=True)
-    start_watch = models.DateField(default=timezone.now, null=True, blank=True)
+    start_watch = models.DateField(null=True, blank=True)
     end_watch = models.DateField(default=timezone.now)
     status = models.CharField(max_length=5, choices=TitleStatus.choices, default=TitleStatus.DONE)
-    review = models.TextField(null=True, blank=True)
+    review = models.TextField(null=True, blank=True, max_length=100000)
     rating = models.DecimalField(max_digits=3, decimal_places=1,
         validators=[MinValueValidator(0), MaxValueValidator(10), rating_validator])
 
