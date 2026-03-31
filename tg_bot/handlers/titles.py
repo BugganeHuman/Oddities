@@ -1,3 +1,6 @@
+import os
+
+import aiohttp
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 from keyboards import (get_base_add_panel, get_title_category_panel,
@@ -7,6 +10,7 @@ from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
 from utils import push_to_history
 from datetime import datetime
+from handlers.start import get_start_menu
 
 
 router = Router()
@@ -59,7 +63,7 @@ async def add_start_year(message : types.Message, state : FSMContext):
         return
 
     await push_to_history(state, "TITLE_STATE_WAITING_FOR_YEAR_START")
-    await state.update_data(title_start_year=title_start_year)
+    await state.update_data(title_year_start=title_start_year)
     #data = await state.get_data()
     await message.answer("Write the review for title", reply_markup=get_base_add_panel())
     await state.set_state(AddTitle.waiting_for_review)
@@ -192,3 +196,96 @@ async def add_year_end(message : types.Message, state : FSMContext):
         await message.answer("Write the correct title's end year for example 1997",
                                          reply_markup=get_base_add_panel())
         await state.set_state(AddTitle.waiting_for_year_end)
+
+@router.callback_query(F.data == "confirm_panel_save")
+async def save_title(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+
+    categories = {
+        "title_category_movie" : "MV",
+        "title_category_series" : "SR",
+        "title_category_anime" : "ANM",
+        "title_category_cartoon" : "CRT",
+        "title_category_video" : "VD",
+        "title_category_legal_case" : "LG",
+        "title_category_written_content" : "READ",
+        "title_category_other" : "OTHER"
+    }
+
+    statuses = {
+        "title_status_panel_DONE" : "DONE",
+        "title_status_panel_DROPPED" : "DROP",
+        "title_status_panel_REVISIT" : "RVS",
+        "title_status_panel_WATCHING" : "WATCH"
+    }
+
+    state_data = await state.get_data()
+    category = categories[state_data['title_category']]
+    name = state_data['title_name']
+    year_start = state_data['title_year_start']
+    review = state_data['title_review']
+    rating = state_data['title_rating']
+    status = ""
+    start_watch = ""
+    end_watch = ""
+    director = ""
+    year_end = ""
+
+    post_data = {
+        "name": name,
+        "year_start": int(year_start),
+        #"year_end": year_end,
+        "category": category,
+        "review": review,
+        "rating": rating
+    }
+
+    if 'title_status' in state_data:
+        status = statuses[state_data['title_status']]
+        post_data['status'] = status
+    if 'title_start_watch' in state_data:
+        date = datetime.strptime(state_data['title_start_watch'], '%d.%m.%Y').date()
+        start_watch = date.strftime('%Y-%m-%d')
+        post_data['start_watch'] = start_watch
+    if 'title_end_watch' in state_data:
+        date = datetime.strptime(state_data['title_end_watch'], '%d.%m.%Y').date()
+        end_watch = date.strftime('%Y-%m-%d')
+        post_data['end_watch'] = end_watch
+    if 'title_director' in state_data:
+        director = state_data['title_director']
+        post_data['director'] = director
+    if 'title_year_end' in state_data:
+        year_end = int(state_data['title_year_end'])
+        post_data['year_end'] = year_end
+
+    url = "http://web:8000/api/titles/title/"
+
+    print("callback.message.from_user.id - " , callback.message.from_user.id)
+
+    headers = {
+        "X-Bot-Key" : str(os.getenv("BOT_MASTER_KEY")),
+        "X-Telegram-Id" : str(callback.from_user.id),
+        "Content-Type": "application/json"
+    }
+
+
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.post(url, headers=headers, json=post_data) as response:
+                if response.status in [200, 201]:
+                    await state.clear()
+                    await callback.message.answer("title saved")
+                    await get_start_menu(callback)
+                else:
+                    await callback.message.answer(f"error {await response.json()}")
+        except Exception:
+            await callback.message.answer("error", reply_markup=get_confirm_title_panel())
+
+
+    #await callback.message.answer(f'{category} {name} {year_start} {review} {rating} {status}')
+
+
+
+
+
+    # конце надо сохронить на серваке запись - отчистить state.get_data() - отправить на start_panel

@@ -8,14 +8,15 @@ from .models import Title
 from .serializers import TitleSerializer
 from .services import get_id, get_cover, get_director, get_year_end
 from rest_framework.response import Response
+import users.authentication
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [JWTAuthentication, users.authentication.BotAuthentication]
     permission_classes = [IsAuthenticatedOrReadOnly]
-
+    #permission_classes = [AllowAny]
 
     def get_queryset(self):
         return Title.objects.filter(owner=self.request.user)
@@ -28,7 +29,6 @@ class TitleViewSet(viewsets.ModelViewSet):
         director = self.request.data.get('director')
         cover = self.request.data.get('cover')
         data = get_id(title_name, year_start)
-        print (get_id(self.request.data.get('name'), self.request.data.get('year_start')))
 
         if not cover:
             print("if not cover")
