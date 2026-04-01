@@ -55,16 +55,15 @@ async def add_title_name(message : types.Message, state : FSMContext):
 async def add_start_year(message : types.Message, state : FSMContext):
     title_start_year = message.text
 
-    if title_start_year.isdigit():
-        pass
-    else:
+    try:
+        Decimal(title_start_year)
+    except Exception:
         await message.answer("write the correct year", reply_markup=get_base_add_panel())
         await state.set_state(AddTitle.waiting_for_year_start)
         return
 
     await push_to_history(state, "TITLE_STATE_WAITING_FOR_YEAR_START")
     await state.update_data(title_year_start=title_start_year)
-    #data = await state.get_data()
     await message.answer("Write the review for title", reply_markup=get_base_add_panel())
     await state.set_state(AddTitle.waiting_for_review)
 
@@ -132,7 +131,7 @@ async def add_start_watch(message : types.Message, state : FSMContext):
     try:
         correct_date = datetime.strptime(start_watch_date, "%d.%m.%Y").date()
         await push_to_history(state, "TITLE_STATE_WAITING_FOR_START_WATCH")
-        await state.update_data(title_start_watch=correct_date)
+        await state.update_data(title_start_watch=start_watch_date)
         await message.answer("check", reply_markup=get_confirm_title_panel())
 
     except Exception:
@@ -154,7 +153,7 @@ async def add_end_watch(message : types.Message, state : FSMContext):
     try:
         correct_date = datetime.strptime(end_watch_date, "%d.%m.%Y").date()
         await push_to_history(state, "TITLE_STATE_WAITING_FOR_END_WATCH")
-        await state.update_data(title_end_watch=correct_date)
+        await state.update_data(title_end_watch=end_watch_date)
         await message.answer("check", reply_markup=get_confirm_title_panel())
 
     except Exception:
@@ -244,11 +243,11 @@ async def save_title(callback : types.CallbackQuery, state : FSMContext):
         status = statuses[state_data['title_status']]
         post_data['status'] = status
     if 'title_start_watch' in state_data:
-        date = datetime.strptime(state_data['title_start_watch'], '%d.%m.%Y').date()
+        date = datetime.strptime(str(state_data['title_start_watch']), '%d.%m.%Y').date()
         start_watch = date.strftime('%Y-%m-%d')
         post_data['start_watch'] = start_watch
     if 'title_end_watch' in state_data:
-        date = datetime.strptime(state_data['title_end_watch'], '%d.%m.%Y').date()
+        date = datetime.strptime(str(state_data['title_end_watch']), '%d.%m.%Y').date()
         end_watch = date.strftime('%Y-%m-%d')
         post_data['end_watch'] = end_watch
     if 'title_director' in state_data:
@@ -260,7 +259,6 @@ async def save_title(callback : types.CallbackQuery, state : FSMContext):
 
     url = "http://web:8000/api/titles/title/"
 
-    print("callback.message.from_user.id - " , callback.message.from_user.id)
 
     headers = {
         "X-Bot-Key" : str(os.getenv("BOT_MASTER_KEY")),
@@ -274,8 +272,8 @@ async def save_title(callback : types.CallbackQuery, state : FSMContext):
             async with session.post(url, headers=headers, json=post_data) as response:
                 if response.status in [200, 201]:
                     await state.clear()
-                    await callback.message.answer("title saved")
                     await get_start_menu(callback)
+                    await callback.message.answer("title saved")
                 else:
                     await callback.message.answer(f"error {await response.json()}")
         except Exception:

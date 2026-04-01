@@ -34,8 +34,8 @@ class Title(models.Model):
         WATCHING = "WATCH", "Watching"
 
     name = models.CharField(max_length=300)
-    year_start = models.PositiveIntegerField()
-    year_end = models.PositiveIntegerField(null=True, blank=True)
+    year_start = models.IntegerField()
+    year_end = models.IntegerField(null=True, blank=True)
     director = models.CharField(max_length=200, null=True, blank=True)
     category = models.CharField(max_length=7, choices=TitleCategory.choices,
         default=TitleCategory.MOVIE)

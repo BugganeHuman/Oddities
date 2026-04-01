@@ -29,16 +29,29 @@ class TitleViewSet(viewsets.ModelViewSet):
         director = self.request.data.get('director')
         cover = self.request.data.get('cover')
         data = get_id(title_name, year_start)
+        category = self.request.data.get('category')
+
+        if category in ['VD', 'LG', 'READ', 'OTHER']:
+            serializer.save(owner=self.request.user, director=director, year_end=year_end)
+            return
 
         if not cover:
-            print("if not cover")
-            cover = get_cover(data)
+            try:
+                cover = get_cover(data)
+            except Exception:
+                pass
 
         if not director:
-            director = director=get_director(data)
+            try:
+                director = director=get_director(data)
+            except Exception:
+                pass
 
         if not year_end:
-            year_end = get_year_end(data)
+            try:
+                year_end = get_year_end(data)
+            except Exception:
+                pass
 
         serializer.save(owner=self.request.user, cover=cover, director=director, year_end=year_end)
 

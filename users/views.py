@@ -41,6 +41,7 @@ def ping(request):
 
 """
 
+
 @api_view(['DELETE'])
 def soft_delete_user(request):
     username = request.data.get('username')
