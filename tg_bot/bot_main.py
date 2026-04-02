@@ -1,8 +1,9 @@
 import asyncio
 from aiogram import Bot, Dispatcher
 import os
-from handlers import start, titles, watchlist, user, navigation
-
+from handlers import start, user, navigation
+from handlers.titles import add_titles, watch_titles
+from handlers.watchlist import watchlist
 
 bot = Bot(token=os.getenv("BOT_TOKEN"))
 
@@ -13,9 +14,10 @@ async def main():
     # Начинаем слушать сервера Телеграма (Polling)
     dp.include_router(start.router)
     dp.include_router(navigation.router)
-    dp.include_router(titles.router)
+    dp.include_router(add_titles.router)
     dp.include_router(watchlist.router)
     dp.include_router(user.router)
+    dp.include_router(watch_titles.router)
 
     await dp.start_polling(bot)
 

@@ -6,7 +6,6 @@ import aiohttp
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from keyboards import get_start_panel, get_confirm_title_panel
-from kombu.transport.virtual import Message
 from aiogram.fsm.state import StatesGroup, State
 
 

@@ -8,15 +8,15 @@ def get_start_panel():
 
     builder.row(
         types.InlineKeyboardButton(text="📝 Add Title", callback_data="add_title"),
-        types.InlineKeyboardButton(text="🗂️ Open Titles", callback_data="Open Titles")
+        types.InlineKeyboardButton(text="🗂️ Open Titles", callback_data="open_titles")
     )
 
     builder.row(
-        types.InlineKeyboardButton(text="📌 Add Watchlist Item", callback_data="Add Watchlist Item"),
-        types.InlineKeyboardButton(text="🗒️ Open Watchlist", callback_data="Open Watchlist")
+        types.InlineKeyboardButton(text="📌 Add Watchlist Item", callback_data="add_watchlist_item"),
+        types.InlineKeyboardButton(text="🗒️ Open Watchlist", callback_data="open_watchlist")
     )
     builder.row (
-        types.InlineKeyboardButton(text="⚙️ Account Actions", callback_data="Account Actions")
+        types.InlineKeyboardButton(text="⚙️ Account Actions", callback_data="account_actions")
     )
 
     return builder.as_markup()
