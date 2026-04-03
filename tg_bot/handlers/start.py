@@ -27,10 +27,10 @@ async def get_start_menu(event):
 
     if isinstance(event, types.CallbackQuery):
         await event.message.edit_text("Welcome to Oddities, bot for help you with content",
-                reply_markup=get_start_panel(),parse_mode="Markdown")
+                reply_markup=get_start_panel())
     if isinstance(event, types.Message):
         await event.answer("Welcome to Oddities, bot for help you with content", reply_markup=get_start_panel(),
-        parse_mode="Markdown")
+        )
 
     #await message.answer("Welcome to Oddities, bot for help you with content", reply_markup=get_start_panel(),
         #parse_mode="Markdown")

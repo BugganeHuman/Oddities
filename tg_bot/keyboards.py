@@ -120,3 +120,49 @@ def get_title_status_panel():
         types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
     )
     return builder.as_markup()
+
+def get_watch_titles_panel(titles_dict, page: int = 0):
+    builder = InlineKeyboardBuilder()
+    ITEMS_PER_PAGE = 9
+    items = list(titles_dict.items())
+    start_index = page * ITEMS_PER_PAGE
+    end_index = start_index + ITEMS_PER_PAGE
+
+    # Берем только нужную пачку (например, с 0 по 10)
+    current_page_items = items[start_index:end_index]
+
+    # Кнопки с названиями фильмов
+    for item_id, data in current_page_items:
+        builder.row(types.InlineKeyboardButton(
+            text=f"{data['name']} |  {data['rating']}",
+            callback_data=f"open_title_{item_id}"
+        ))
+
+    # Кнопки навигации (Вперед/Назад)
+    nav_buttons = []
+    if page > 0:
+        nav_buttons.append(types.InlineKeyboardButton(text="⬅️ back", callback_data=f"open_titles_page_{page - 1}"))
+
+    if end_index < len(items):
+        nav_buttons.append(types.InlineKeyboardButton(text="next➡️", callback_data=f"open_titles_page_{page + 1}"))
+
+    if nav_buttons:
+        builder.row(*nav_buttons)
+    builder.row(
+        types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu")
+    )
+
+    return builder.as_markup()
+
+def get_open_title_panel():
+    builder = InlineKeyboardBuilder()
+
+    builder.row(
+        types.InlineKeyboardButton(text="❌ Delete", callback_data="delete_title"),
+        types.InlineKeyboardButton(text="✏️ Update", callback_data="update_title")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu"),
+        types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
+    )
+    return builder.as_markup()

@@ -9,9 +9,11 @@ from aiogram.fsm.state import StatesGroup, State
 from handlers.start import get_start_menu
 from handlers.titles.add_titles import add_title
 from handlers.titles.add_titles import AddTitle
+from handlers.titles.watch_titles import get_all_titles
 from keyboards import (get_base_add_panel, get_title_category_panel,
-                       get_confirm_title_panel, get_title_fix_panel)
-
+                       get_confirm_title_panel, get_title_fix_panel,
+                       get_watch_titles_panel)
+from utils import push_to_history
 
 router = Router()
 
@@ -22,9 +24,6 @@ async def to_start_menu(callback : types.CallbackQuery):
 
 @router.callback_query(F.data == "to_back")
 async def to_back(callback : types.CallbackQuery, state : FSMContext):
-    datas = {
-
-    }
 
     await callback.answer()
     data = await state.get_data()
@@ -76,5 +75,11 @@ async def to_back(callback : types.CallbackQuery, state : FSMContext):
         await callback.message.edit_text("Write the title's end year",
                                          reply_markup=get_base_add_panel())
         await state.set_state(AddTitle.waiting_for_year_end)
-
+    elif last_panel.startswith("TITLES_WATCH_MENU_PAGE_"):
+        titles = await get_all_titles(callback)
+        page = int(last_panel.split("_")[4])
+        await callback.message.edit_text(
+            f"Titles Page {page}",
+            reply_markup=get_watch_titles_panel(titles, page=page)
+        )
 

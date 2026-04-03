@@ -1,5 +1,5 @@
 import os
-
+import asyncio
 import aiohttp
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
@@ -272,8 +272,9 @@ async def save_title(callback : types.CallbackQuery, state : FSMContext):
             async with session.post(url, headers=headers, json=post_data) as response:
                 if response.status in [200, 201]:
                     await state.clear()
+                    await callback.message.edit_text("Title Saved")
+                    await asyncio.sleep(3)
                     await get_start_menu(callback)
-                    await callback.message.answer("title saved")
                 else:
                     await callback.message.answer(f"error {await response.json()}")
         except Exception:
