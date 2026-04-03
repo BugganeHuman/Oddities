@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from keyboards import (get_base_add_panel, get_title_category_panel,
                        get_confirm_title_panel, get_title_fix_panel,
                        get_title_status_panel, get_watch_titles_panel,
-                       get_open_title_panel)
+                       get_open_title_panel, get_title_update_panel)
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
 from utils import push_to_history
@@ -37,7 +37,7 @@ async def get_all_titles(callback : types.CallbackQuery):
                     }
         except Exception as e:
             print(e)
-    return titles
+    return dict(reversed(list(titles.items())))
 
 async def get_title(callback : types.CallbackQuery, title_id):
     url= f"http://web:8000/api/titles/title/{title_id}/"
@@ -53,7 +53,25 @@ async def get_title(callback : types.CallbackQuery, title_id):
                 title = await response.json()
         except Exception as e:
             print(e)
-    return title
+
+    text = (f"{title['name']}  {title['year_start']}\n"
+            f"rating - {title['rating']}\n\n"
+            f"_____________________________________________________\n"
+            f"{title['review']}\n"
+            f"_____________________________________________________\n\n"
+            f"category - {title['category']}\n"
+            f"director - {title['director']}\n"
+            f"start watch - {title['start_watch']}\n"
+            f"end watch - {title['end_watch']}\n"
+            f"year_end - {title['year_end']}\n"
+            f"status - {title['status']}"
+            )
+
+    data = {
+        'title_data' : title,
+        'title_text' : text,
+    }
+    return data
 
 @router.callback_query(F.data == "open_titles")
 async def watch_titles(callback : types.CallbackQuery, state : FSMContext ):
@@ -81,7 +99,7 @@ async def response_next_titles_page(callback : types.CallbackQuery, state : FSMC
     titles = await get_all_titles(callback)
 
     await callback.message.edit_text(
-        f"Titles Page {page + 1}",
+        f"Page {page + 1}",
         reply_markup=get_watch_titles_panel(titles, page=page)
     )
 
@@ -89,8 +107,29 @@ async def response_next_titles_page(callback : types.CallbackQuery, state : FSMC
 async def watch_title(callback : types.CallbackQuery, state : FSMContext):
     await callback.answer()
     title_id = int(callback.data.split("_")[2])
+    page = int(callback.data.split("_")[4])
+    await push_to_history(state, f'TITLES_WATCH_MENU_PAGE_{page}')
     title = await get_title(callback, title_id)
-    text = (f"{title['name']}\n"
-            f"rating - {title['rating']}\n"
-            f"{title['review']}")
-    await callback.message.edit_text(text, reply_markup=get_open_title_panel())
+    """
+    text = (f"{title['name']}  {title['year_start']}\n"
+            f"rating - {title['rating']}\n\n"
+            f"_____________________________________________________\n"
+            f"{title['review']}\n"
+            f"_____________________________________________________\n\n"
+            f"category - {title['category']}\n"
+            f"director - {title['director']}\n"
+            f"start watch - {title['start_watch']}\n"
+            f"end watch - {title['end_watch']}\n"
+            f"year_end - {title['year_end']}\n"
+            f"status - {title['status']}"
+            )
+    """
+
+    await callback.message.edit_text(title['title_text'], reply_markup=get_open_title_panel(title_id))
+
+@router.callback_query(F.data.contains('update_title_'))
+async def run_update(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    title_id = int(callback.data.split('_')[2])
+    await push_to_history(state, F"OPEN_TITLE_{title_id}")
+    await callback.message.edit_text("Update Title", reply_markup=get_title_update_panel())
