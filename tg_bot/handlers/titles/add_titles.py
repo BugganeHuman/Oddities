@@ -273,7 +273,7 @@ async def save_title(callback : types.CallbackQuery, state : FSMContext):
                 if response.status in [200, 201]:
                     await state.clear()
                     await callback.message.edit_text("Title Saved")
-                    await asyncio.sleep(3)
+                    await asyncio.sleep(2.5)
                     await get_start_menu(callback)
                 else:
                     await callback.message.answer(f"error {await response.json()}")

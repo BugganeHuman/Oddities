@@ -6,7 +6,8 @@ from aiogram.fsm.context import FSMContext
 from keyboards import (get_base_add_panel, get_title_category_panel,
                        get_confirm_title_panel, get_title_fix_panel,
                        get_title_status_panel, get_watch_titles_panel,
-                       get_open_title_panel, get_title_update_panel)
+                       get_open_title_panel, get_title_update_panel,
+                       get_confirm_delete_panel)
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
 from utils import push_to_history
@@ -126,6 +127,48 @@ async def watch_title(callback : types.CallbackQuery, state : FSMContext):
     """
 
     await callback.message.edit_text(title['title_text'], reply_markup=get_open_title_panel(title_id))
+
+@router.callback_query(F.data.contains('confirm_delete_title_'))
+async def run_confirm_delete(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    title_id = int(callback.data.split('_')[3])
+    await push_to_history(state, F"OPEN_TITLE_{title_id}")
+    await callback.message.edit_text('Are You Sure?',
+        reply_markup=get_confirm_delete_panel(title_id))
+
+@router.callback_query(F.data.contains('delete_title_'))
+async def delete_title(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    title_id = int(callback.data.split('_')[2])
+    url= f"http://web:8000/api/titles/title/{title_id}/"
+    data = await state.get_data()
+    pages = [key for key in data['history'] if key.startswith('TITLES_WATCH_MENU_PAGE_')]
+    page = int(pages[-1].split('_')[4])
+    headers = {
+        "X-Bot-Key": str(os.getenv("BOT_MASTER_KEY")),
+        "X-Telegram-Id": str(callback.from_user.id),
+        "Content-Type": "application/json"
+    }
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.delete(url, headers=headers) as response:
+                if response.status == 204:
+                    await callback.message.edit_text('Title Have Deleted')
+                    await asyncio.sleep(3)
+                    await callback.message.edit_text(
+                    f"Page {page}",
+                        reply_markup=get_watch_titles_panel(await get_all_titles(callback), page=page)
+                        )
+                else:
+                    print("status - ", response.status)
+                    await callback.message.edit_text('delete error')
+                    await asyncio.sleep(3)
+                    await callback.message.edit_text(
+                    f"Page {page}",
+                        reply_markup=get_watch_titles_panel(await get_all_titles(callback), page=page)
+                        )
+        except Exception as e:
+            print(e)
 
 @router.callback_query(F.data.contains('update_title_'))
 async def run_update(callback : types.CallbackQuery, state : FSMContext):

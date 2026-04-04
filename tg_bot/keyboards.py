@@ -160,7 +160,7 @@ def get_open_title_panel(title_id):
     builder = InlineKeyboardBuilder()
 
     builder.row(
-        types.InlineKeyboardButton(text="❌ Delete", callback_data=f"delete_title_{title_id}"),
+        types.InlineKeyboardButton(text="❌ Delete", callback_data=f"confirm_delete_title_{title_id}"),
         types.InlineKeyboardButton(text="✏️ Update", callback_data=f"update_title_{title_id}")
     )
     builder.row(
@@ -191,6 +191,19 @@ def get_title_update_panel():
     builder.row(
         types.InlineKeyboardButton(text="📅 Start Year", callback_data="q"),
         types.InlineKeyboardButton(text='🗓️ End Year', callback_data="q")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu"),
+        types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
+    )
+    return builder.as_markup()
+
+def get_confirm_delete_panel(title_id):
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        types.InlineKeyboardButton(text='💀 Yes I want delete this title',
+                callback_data=f'delete_title_{title_id}'),
+        types.InlineKeyboardButton(text="🛡️ No I don't want delete ", callback_data='to_back')
     )
     builder.row(
         types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu"),
