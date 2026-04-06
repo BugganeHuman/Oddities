@@ -4,7 +4,7 @@ import aiohttp
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from keyboards import (get_start_panel, get_confirm_title_panel,
-                       get_title_status_panel)
+                       get_title_status_panel, get_title_update_panel)
 from aiogram.fsm.state import StatesGroup, State
 from handlers.start import get_start_menu
 from handlers.titles.add_titles import add_title
@@ -13,7 +13,7 @@ from handlers.titles.watch_titles import get_all_titles, get_title
 from keyboards import (get_base_add_panel, get_title_category_panel,
                        get_confirm_title_panel, get_title_fix_panel,
                        get_watch_titles_panel, get_open_title_panel)
-from utils import push_to_history
+from utils import push_to_history, get_updated_title
 
 router = Router()
 
@@ -85,19 +85,9 @@ async def to_back(callback : types.CallbackQuery, state : FSMContext):
     elif last_panel.startswith("OPEN_TITLE_"):
         title_id = int(last_panel.split('_')[2])
         title = await get_title(callback, title_id)
-        """
-        text = (f"{title['name']}  {title['year_start']}\n"
-                f"rating - {title['rating']}\n\n"
-                f"_____________________________________________________\n"
-                f"{title['review']}\n"
-                f"_____________________________________________________\n\n"
-                f"category - {title['category']}\n"
-                f"director - {title['director']}\n"
-                f"start watch - {title['start_watch']}\n"
-                f"end watch - {title['end_watch']}\n"
-                f"year_end - {title['year_end']}\n"
-                f"status - {title['status']}"
-                )
-        """
-
         await callback.message.edit_text(title['title_text'], reply_markup=get_open_title_panel(title_id))
+    elif last_panel.startswith("TITLE_UPDATE_PANEL_"):
+        title_id = int(last_panel.split('_')[3])
+        title = await get_updated_title(callback, state)
+        await callback.message.edit_text(await get_updated_title(callback, state),
+                reply_markup=get_title_update_panel())

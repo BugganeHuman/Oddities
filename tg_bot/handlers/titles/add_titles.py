@@ -5,10 +5,10 @@ from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 from keyboards import (get_base_add_panel, get_title_category_panel,
                        get_confirm_title_panel, get_title_fix_panel,
-                       get_title_status_panel)
+                       get_title_status_panel, get_title_update_panel)
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
-from utils import push_to_history
+from utils import push_to_history, get_updated_title, delete_last
 from datetime import datetime
 from handlers.start import get_start_menu
 
@@ -29,6 +29,7 @@ class AddTitle(StatesGroup):
 @router.callback_query(F.data == "add_title")
 async def add_title(callback: types.CallbackQuery, state : FSMContext):
     await callback.answer()
+    await state.update_data(is_update=False)
     await push_to_history(state, "START_MENU")
     await callback.message.edit_text("Chose the title category",
         reply_markup=get_title_category_panel())
@@ -36,9 +37,17 @@ async def add_title(callback: types.CallbackQuery, state : FSMContext):
 @router.callback_query(F.data.contains("title_category_"))
 async def choose_category(callback: types.CallbackQuery, state : FSMContext):
     chosen_category = callback.data
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
     await callback.answer()
-    await push_to_history(state, "TITLE_PANEL_ADD_CATEGORY")
     await state.update_data(title_category=chosen_category)
+    if is_update:
+        await callback.message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        await callback.message.answer(await get_updated_title(callback, state),reply_markup=get_title_update_panel())
+        return
+    await push_to_history(state, "TITLE_PANEL_ADD_CATEGORY")
     await state.set_state(AddTitle.waiting_for_name)
     await callback.message.answer("Write the title's name",
         reply_markup=get_base_add_panel())
@@ -46,38 +55,65 @@ async def choose_category(callback: types.CallbackQuery, state : FSMContext):
 @router.message(AddTitle.waiting_for_name)
 async def add_title_name(message : types.Message, state : FSMContext):
     title_name = message.text
-    await push_to_history(state, "TITLE_STATE_WAITING_FOR_NAME")
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
     await state.update_data(title_name=title_name)
-    await message.answer("Write title's start year", reply_markup=get_base_add_panel())
-    await state.set_state(AddTitle.waiting_for_year_start)
+    if is_update:
+        await message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        await message.answer(await get_updated_title(message, state),reply_markup=get_title_update_panel())
+        return
+    else:
+        await push_to_history(state, "TITLE_STATE_WAITING_FOR_NAME")
+        await message.answer("Write title's start year", reply_markup=get_base_add_panel())
+        await state.set_state(AddTitle.waiting_for_year_start)
 
 @router.message(AddTitle.waiting_for_year_start)
-async def add_start_year(message : types.Message, state : FSMContext):
-    title_start_year = message.text
-
+async def add_year_start(message : types.Message, state : FSMContext):
+    title_year_start = message.text
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
     try:
-        Decimal(title_start_year)
+        Decimal(title_year_start)
     except Exception:
         await message.answer("write the correct year", reply_markup=get_base_add_panel())
         await state.set_state(AddTitle.waiting_for_year_start)
         return
-
-    await push_to_history(state, "TITLE_STATE_WAITING_FOR_YEAR_START")
-    await state.update_data(title_year_start=title_start_year)
-    await message.answer("Write the review for title", reply_markup=get_base_add_panel())
-    await state.set_state(AddTitle.waiting_for_review)
+    await state.update_data(title_year_start=title_year_start)
+    if is_update:
+        await message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        await message.answer(await get_updated_title(message, state),reply_markup=get_title_update_panel())
+        return
+    else:
+        await push_to_history(state, "TITLE_STATE_WAITING_FOR_YEAR_START")
+        await message.answer("Write the review for title", reply_markup=get_base_add_panel())
+        await state.set_state(AddTitle.waiting_for_review)
 
 @router.message(AddTitle.waiting_for_review)
 async def add_review(message : types.Message, state : FSMContext):
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
     title_review = message.text
-    await push_to_history(state, "TITLE_STATE_WAITING_FOR_REVIEW")
     await state.update_data(title_review=title_review)
-    await message.answer("write the rating for title", reply_markup=get_base_add_panel())
-    await state.set_state(AddTitle.waiting_for_rating)
+    if is_update:
+        await message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        await message.answer(await get_updated_title(message, state),reply_markup=get_title_update_panel())
+        return
+    else:
+        await push_to_history(state, "TITLE_STATE_WAITING_FOR_REVIEW")
+        await message.answer("write the rating for title", reply_markup=get_base_add_panel())
+        await state.set_state(AddTitle.waiting_for_rating)
 
 @router.message(AddTitle.waiting_for_rating)
 async def add_rating(message : types.Message, state : FSMContext):
     title_rating = message.text
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
     try:
         rating = Decimal(title_rating.replace(",", "."))
         min_rating = Decimal("0.5")
@@ -88,14 +124,21 @@ async def add_rating(message : types.Message, state : FSMContext):
             raise
     except Exception:
         await message.answer("write the correct rating from 0.5 to 10, for example 7 or 7.5",
-                             reply_markup=get_base_add_panel())
+                            reply_markup=get_base_add_panel())
         await state.set_state(AddTitle.waiting_for_rating)
         return
 
-    await push_to_history(state, "TITLE_STATE_WAITING_FOR_RATING")
 
     await state.update_data(title_rating=title_rating)
-    await message.answer("check", reply_markup=get_confirm_title_panel())
+    if is_update:
+        await message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        await message.answer(await get_updated_title(message, state),reply_markup=get_title_update_panel())
+        return
+    else:
+        await push_to_history(state, "TITLE_STATE_WAITING_FOR_RATING")
+        await message.answer("check", reply_markup=get_confirm_title_panel())
 
 @router.callback_query(F.data == "title_confirm_panel_fix")
 async def run_fix_panel(callback : types.CallbackQuery, state : FSMContext):
@@ -113,9 +156,18 @@ async def show_status_panel(callback : types.CallbackQuery, state : FSMContext):
 async def choose_status(callback: types.CallbackQuery, state : FSMContext):
     chosen_status = callback.data
     await callback.answer()
-    await push_to_history(state, "TITLE_STATUS_PANEL")
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
     await state.update_data(title_status=chosen_status)
-    await callback.message.edit_text("check", reply_markup=get_confirm_title_panel())
+    if is_update:
+        await callback.message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        await callback.message.answer(await get_updated_title(callback, state), reply_markup=get_title_update_panel())
+        return
+    else:
+        await push_to_history(state, "TITLE_STATUS_PANEL")
+        await callback.message.edit_text("check", reply_markup=get_confirm_title_panel())
 
 @router.callback_query(F.data == "title_confirm_panel_start_watch")
 async def run_add_start_watch(callback : types.CallbackQuery, state : FSMContext):
@@ -128,11 +180,20 @@ async def run_add_start_watch(callback : types.CallbackQuery, state : FSMContext
 @router.message(AddTitle.waiting_for_start_watch)
 async def add_start_watch(message : types.Message, state : FSMContext):
     start_watch_date = message.text
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
     try:
         correct_date = datetime.strptime(start_watch_date, "%d.%m.%Y").date()
-        await push_to_history(state, "TITLE_STATE_WAITING_FOR_START_WATCH")
         await state.update_data(title_start_watch=start_watch_date)
-        await message.answer("check", reply_markup=get_confirm_title_panel())
+        if is_update:
+            await message.answer("Save")
+            await asyncio.sleep(0.5)
+            await delete_last(state)
+            await message.answer(await get_updated_title(message, state), reply_markup=get_title_update_panel())
+            return
+        else:
+            await push_to_history(state, "TITLE_STATE_WAITING_FOR_START_WATCH")
+            await message.answer("check", reply_markup=get_confirm_title_panel())
 
     except Exception:
         await message.answer("write correct date dd.mm.yyyy for example 21.01.2026",
@@ -150,11 +211,20 @@ async def run_add_end_watch(callback : types.CallbackQuery, state : FSMContext):
 @router.message(AddTitle.waiting_for_end_watch)
 async def add_end_watch(message : types.Message, state : FSMContext):
     end_watch_date = message.text
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
     try:
         correct_date = datetime.strptime(end_watch_date, "%d.%m.%Y").date()
-        await push_to_history(state, "TITLE_STATE_WAITING_FOR_END_WATCH")
         await state.update_data(title_end_watch=end_watch_date)
-        await message.answer("check", reply_markup=get_confirm_title_panel())
+        if is_update:
+            await message.answer("Save")
+            await asyncio.sleep(0.5)
+            await delete_last(state)
+            await message.answer(await get_updated_title(message, state), reply_markup=get_title_update_panel())
+            return
+        else:
+            await push_to_history(state, "TITLE_STATE_WAITING_FOR_END_WATCH")
+            await message.answer("check", reply_markup=get_confirm_title_panel())
 
     except Exception:
         await message.answer("write correct date dd.mm.yyyy for example 11.04.2026",
@@ -171,9 +241,18 @@ async def run_add_director (callback : types.CallbackQuery, state : FSMContext):
 @router.message(AddTitle.waiting_for_director)
 async def add_director(message : types.Message, state : FSMContext):
     director = message.text
-    await push_to_history(state, "TITLE_STATE_WAITING_FOR_DIRECTOR")
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
     await state.update_data(title_director=director)
-    await message.answer("fix panel", reply_markup=get_title_fix_panel())
+    if is_update:
+        await message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        await message.answer(await get_updated_title(message, state), reply_markup=get_title_update_panel())
+        return
+    else:
+        await push_to_history(state, "TITLE_STATE_WAITING_FOR_DIRECTOR")
+        await message.answer("fix panel", reply_markup=get_title_fix_panel())
 
 @router.callback_query(F.data == "title_fix_panel_year_end")
 async def run_add_year_end(callback : types.CallbackQuery, state : FSMContext):
@@ -186,11 +265,20 @@ async def run_add_year_end(callback : types.CallbackQuery, state : FSMContext):
 @router.message(AddTitle.waiting_for_year_end)
 async def add_year_end(message : types.Message, state : FSMContext):
     year_end = message.text
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
     try:
         Decimal(year_end)
-        await push_to_history(state, "TITLE_STATE_WAITING_FOR_YEAR_END")
         await state.update_data(title_year_end=year_end)
-        await message.answer("fix panel", reply_markup=get_title_fix_panel())
+        if is_update:
+            await message.answer("Save")
+            await asyncio.sleep(0.5)
+            await delete_last(state)
+            await message.answer(await get_updated_title(message, state), reply_markup=get_title_update_panel())
+            return
+        else:
+            await push_to_history(state, "TITLE_STATE_WAITING_FOR_YEAR_END")
+            await message.answer("fix panel", reply_markup=get_title_fix_panel())
     except Exception:
         await message.answer("Write the correct title's end year for example 1997",
                                          reply_markup=get_base_add_panel())

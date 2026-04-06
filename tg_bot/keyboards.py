@@ -161,7 +161,7 @@ def get_open_title_panel(title_id):
 
     builder.row(
         types.InlineKeyboardButton(text="❌ Delete", callback_data=f"confirm_delete_title_{title_id}"),
-        types.InlineKeyboardButton(text="✏️ Update", callback_data=f"update_title_{title_id}")
+        types.InlineKeyboardButton(text="✏️ Update", callback_data=f"panel_update_title_{title_id}")
     )
     builder.row(
         types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu"),
@@ -177,24 +177,27 @@ def get_title_update_panel():
         types.InlineKeyboardButton(text='💬 Review', callback_data='update_title_review')
     )
     builder.row(
-        types.InlineKeyboardButton(text='🏁 Start Watch', callback_data="q"),
-        types.InlineKeyboardButton(text='🏆 End Watch', callback_data="q")
+        types.InlineKeyboardButton(text='🏁 Start Watch', callback_data="update_title_start_watch"),
+        types.InlineKeyboardButton(text='🏆 End Watch', callback_data="update_title_end_watch")
     )
     builder.row(
-        types.InlineKeyboardButton(text='📂 Category', callback_data="q"),
-        types.InlineKeyboardButton(text="🚩 Status", callback_data="q")
+        types.InlineKeyboardButton(text='📂 Category', callback_data="update_title_category"),
+        types.InlineKeyboardButton(text="🚩 Status", callback_data="update_title_status")
     )
     builder.row(
-        types.InlineKeyboardButton(text='🎥 Director', callback_data="q"),
-        types.InlineKeyboardButton(text='🏷️ Name', callback_data='q')
+        types.InlineKeyboardButton(text='🎥 Director', callback_data="update_title_director"),
+        types.InlineKeyboardButton(text='🏷️ Name', callback_data='update_title_name')
     )
     builder.row(
-        types.InlineKeyboardButton(text="📅 Start Year", callback_data="q"),
-        types.InlineKeyboardButton(text='🗓️ End Year', callback_data="q")
+        types.InlineKeyboardButton(text="📅 Start Year", callback_data="update_title_year_start"),
+        types.InlineKeyboardButton(text='🗓️ End Year', callback_data="update_title_year_end")
     )
     builder.row(
         types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu"),
         types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="💾 Save", callback_data="update_panel_save")
     )
     return builder.as_markup()
 
