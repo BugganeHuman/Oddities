@@ -10,7 +10,7 @@ from keyboards import (get_base_add_panel, get_title_category_panel,
                        get_confirm_delete_panel)
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
-from utils import push_to_history, delete_last
+from utils import push_to_history, delete_last, get_updated_title
 from datetime import datetime
 from handlers.start import get_start_menu
 from handlers.titles.add_titles import add_review
@@ -168,7 +168,8 @@ async def run_update(callback : types.CallbackQuery, state : FSMContext):
     await state.update_data(is_update=True)
     title_id = int(callback.data.split('_')[3])
     await push_to_history(state, F"OPEN_TITLE_{title_id}")
-    await callback.message.edit_text("Update Title", reply_markup=get_title_update_panel())
+    title_data = await get_updated_title(callback, state)
+    await callback.message.edit_text(title_data['text'], reply_markup=get_title_update_panel())
 
 """
 @router.callback_query(F.data == 'update_title_review')
@@ -210,3 +211,32 @@ async def update(callback : types.CallbackQuery, state : FSMContext):
         await callback.message.answer(f'Chose new category for Title', reply_markup=get_title_category_panel())
     if updating == 'status':
         await callback.message.answer(f'Chose new status for Title', reply_markup=get_title_status_panel())
+
+@router.callback_query(F.data == "save_updated_title")
+async def save_update_title (callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    data = await state.get_data()
+    title_id = data.get('title_id')
+    url = f"http://web:8000/api/titles/title/{title_id}/"
+    headers = {
+        "X-Bot-Key": str(os.getenv("BOT_MASTER_KEY")),
+        "X-Telegram-Id": str(callback.from_user.id),
+        "Content-Type": "application/json"
+    }
+    title_data = await get_updated_title(callback, state)
+    updated = title_data['updated']
+
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.patch(url, headers=headers, json=updated) as response:
+                    if response.status in [200, 204]:
+                        await callback.message.answer("updated")
+                        await asyncio.sleep(0.5)
+                        await delete_last(state)
+                        title = await get_updated_title(callback, state)
+                        await callback.message.answer(title['text'], reply_markup=get_open_title_panel(title_id))
+                    else:
+                        await callback.message.answer(f"error {response.status}" )
+                        #await callback.message.answer(f"{await response.json()}")
+        except Exception as e:
+            print(e)

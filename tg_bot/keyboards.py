@@ -197,7 +197,7 @@ def get_title_update_panel():
         types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
     )
     builder.row(
-        types.InlineKeyboardButton(text="💾 Save", callback_data="update_panel_save")
+        types.InlineKeyboardButton(text="💾 Save", callback_data="save_updated_title")
     )
     return builder.as_markup()
 

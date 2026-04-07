@@ -8,6 +8,8 @@ from keyboards import (get_base_add_panel, get_title_category_panel,
                        get_title_status_panel, get_title_update_panel)
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
+
+from pyexpat.errors import messages
 from utils import push_to_history, get_updated_title, delete_last
 from datetime import datetime
 from handlers.start import get_start_menu
@@ -45,7 +47,8 @@ async def choose_category(callback: types.CallbackQuery, state : FSMContext):
         await callback.message.answer("Save")
         await asyncio.sleep(0.5)
         await delete_last(state)
-        await callback.message.answer(await get_updated_title(callback, state),reply_markup=get_title_update_panel())
+        title_data = await get_updated_title(callback, state)
+        await callback.message.answer(title_data['text'],reply_markup=get_title_update_panel())
         return
     await push_to_history(state, "TITLE_PANEL_ADD_CATEGORY")
     await state.set_state(AddTitle.waiting_for_name)
@@ -62,7 +65,8 @@ async def add_title_name(message : types.Message, state : FSMContext):
         await message.answer("Save")
         await asyncio.sleep(0.5)
         await delete_last(state)
-        await message.answer(await get_updated_title(message, state),reply_markup=get_title_update_panel())
+        title_data = await get_updated_title(message, state)
+        await message.answer(title_data['text'],reply_markup=get_title_update_panel())
         return
     else:
         await push_to_history(state, "TITLE_STATE_WAITING_FOR_NAME")
@@ -85,7 +89,8 @@ async def add_year_start(message : types.Message, state : FSMContext):
         await message.answer("Save")
         await asyncio.sleep(0.5)
         await delete_last(state)
-        await message.answer(await get_updated_title(message, state),reply_markup=get_title_update_panel())
+        title_data = await get_updated_title(message, state)
+        await message.answer(title_data['text'], reply_markup=get_title_update_panel())
         return
     else:
         await push_to_history(state, "TITLE_STATE_WAITING_FOR_YEAR_START")
@@ -102,7 +107,8 @@ async def add_review(message : types.Message, state : FSMContext):
         await message.answer("Save")
         await asyncio.sleep(0.5)
         await delete_last(state)
-        await message.answer(await get_updated_title(message, state),reply_markup=get_title_update_panel())
+        title_data = await get_updated_title(message, state)
+        await message.answer(title_data['text'], reply_markup=get_title_update_panel())
         return
     else:
         await push_to_history(state, "TITLE_STATE_WAITING_FOR_REVIEW")
@@ -134,7 +140,8 @@ async def add_rating(message : types.Message, state : FSMContext):
         await message.answer("Save")
         await asyncio.sleep(0.5)
         await delete_last(state)
-        await message.answer(await get_updated_title(message, state),reply_markup=get_title_update_panel())
+        title_data = await get_updated_title(message, state)
+        await message.answer(title_data['text'], reply_markup=get_title_update_panel())
         return
     else:
         await push_to_history(state, "TITLE_STATE_WAITING_FOR_RATING")
@@ -163,7 +170,8 @@ async def choose_status(callback: types.CallbackQuery, state : FSMContext):
         await callback.message.answer("Save")
         await asyncio.sleep(0.5)
         await delete_last(state)
-        await callback.message.answer(await get_updated_title(callback, state), reply_markup=get_title_update_panel())
+        title_data = await get_updated_title(callback, state)
+        await callback.message.answer(title_data['text'], reply_markup=get_title_update_panel())
         return
     else:
         await push_to_history(state, "TITLE_STATUS_PANEL")
@@ -189,7 +197,8 @@ async def add_start_watch(message : types.Message, state : FSMContext):
             await message.answer("Save")
             await asyncio.sleep(0.5)
             await delete_last(state)
-            await message.answer(await get_updated_title(message, state), reply_markup=get_title_update_panel())
+            title_data = await get_updated_title(message, state)
+            await message.answer(title_data['text'], reply_markup=get_title_update_panel())
             return
         else:
             await push_to_history(state, "TITLE_STATE_WAITING_FOR_START_WATCH")
@@ -220,7 +229,8 @@ async def add_end_watch(message : types.Message, state : FSMContext):
             await message.answer("Save")
             await asyncio.sleep(0.5)
             await delete_last(state)
-            await message.answer(await get_updated_title(message, state), reply_markup=get_title_update_panel())
+            title_data = await get_updated_title(message, state)
+            await message.answer(title_data['text'], reply_markup=get_title_update_panel())
             return
         else:
             await push_to_history(state, "TITLE_STATE_WAITING_FOR_END_WATCH")
@@ -248,7 +258,8 @@ async def add_director(message : types.Message, state : FSMContext):
         await message.answer("Save")
         await asyncio.sleep(0.5)
         await delete_last(state)
-        await message.answer(await get_updated_title(message, state), reply_markup=get_title_update_panel())
+        title_data = await get_updated_title(message, state)
+        await message.answer(title_data['text'], reply_markup=get_title_update_panel())
         return
     else:
         await push_to_history(state, "TITLE_STATE_WAITING_FOR_DIRECTOR")
@@ -274,7 +285,8 @@ async def add_year_end(message : types.Message, state : FSMContext):
             await message.answer("Save")
             await asyncio.sleep(0.5)
             await delete_last(state)
-            await message.answer(await get_updated_title(message, state), reply_markup=get_title_update_panel())
+            title_data = await get_updated_title(message, state)
+            await message.answer(title_data['text'], reply_markup=get_title_update_panel())
             return
         else:
             await push_to_history(state, "TITLE_STATE_WAITING_FOR_YEAR_END")

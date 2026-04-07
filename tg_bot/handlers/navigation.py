@@ -88,9 +88,9 @@ async def to_back(callback : types.CallbackQuery, state : FSMContext):
         #title = await get_title(callback, title_id)
         #await callback.message.edit_text(title['title_text'], reply_markup=get_open_title_panel(title_id))
         title = await get_updated_title(callback, state)
-        await callback.message.edit_text(title, reply_markup=get_open_title_panel(title_id))
+        await callback.message.edit_text(title['text'], reply_markup=get_open_title_panel(title_id))
     elif last_panel.startswith("TITLE_UPDATE_PANEL_"):
         title_id = int(last_panel.split('_')[3])
         title = await get_updated_title(callback, state)
-        await callback.message.edit_text(await get_updated_title(callback, state),
+        await callback.message.edit_text(title['text'],
                 reply_markup=get_title_update_panel())

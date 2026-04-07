@@ -20,7 +20,6 @@ async def push_to_history(state : FSMContext, screen_id : str):
 
 
 async def get_updated_title(event : Union[types.Message, types.CallbackQuery], state: FSMContext):
-    from handlers.titles.watch_titles import get_title
 
     categories = {
         "title_category_movie" : "MV",
@@ -40,6 +39,8 @@ async def get_updated_title(event : Union[types.Message, types.CallbackQuery], s
         "title_status_panel_WATCHING" : "WATCH"
     }
 
+    updated = {}
+
     state_data = await state.get_data()
     title_id = state_data.get('title_id')
     #data = await get_title(event, title_id)
@@ -53,11 +54,13 @@ async def get_updated_title(event : Union[types.Message, types.CallbackQuery], s
     category = ""
     if "title_category" in state_data:
         category = categories[state_data["title_category"]]
+        updated['category'] = category
     else:
         category = title['category']
     status = ""
     if "title_status" in state_data:
         status = statuses[state_data['title_status']]
+        updated['status'] = status
     else:
         status = title['status']
     director = state_data.get("title_director", title['director'])
@@ -78,7 +81,22 @@ async def get_updated_title(event : Union[types.Message, types.CallbackQuery], s
             f"status - {status}"
             )
 
-
+    if "title_name" in state_data:
+        updated['name'] = name
+    if "title_rating" in state_data:
+        updated['rating'] = rating
+    if "title_director" in state_data:
+        updated['director'] = director
+    if "title_year_start" in state_data:
+        updated['year_start'] = year_start
+    if "title_year_end" in state_data:
+        updated['year_end'] = year_end
+    if "title_review" in state_data:
+        updated['review'] = review
+    if "title_start_watch" in state_data:
+        updated['start_watch'] = start_watch
+    if "title_end_watch" in state_data:
+        updated['end_watch'] = end_watch
 
     #await state.update_data(title_data=t)
     """
@@ -97,4 +115,9 @@ async def get_updated_title(event : Union[types.Message, types.CallbackQuery], s
     'rating': '3.0'}
     """
 
-    return str(text)
+    result = {
+        "text" : str(text),
+        "updated" : updated
+    }
+
+    return result
