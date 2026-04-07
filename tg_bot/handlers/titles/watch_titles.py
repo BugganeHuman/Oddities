@@ -85,6 +85,7 @@ async def watch_titles(callback : types.CallbackQuery, state : FSMContext ):
     # https://unconsecutively-polyprotic-fay.ngrok-free.dev
 
     titles = await get_all_titles(callback)
+    await state.update_data(titles_data=titles)
     #all_titles = titles
     await callback.message.edit_text("Watch Your Titles",
                                         reply_markup=get_watch_titles_panel(titles),
@@ -99,8 +100,8 @@ async def response_next_titles_page(callback : types.CallbackQuery, state : FSMC
     page = int(callback.data.split("_")[3])
 
     await push_to_history(state, f'TITLES_WATCH_MENU_PAGE_{page}')
-
-    titles = await get_all_titles(callback)
+    data = await state.get_data()
+    titles = data.get('titles_data')
 
     await callback.message.edit_text(
         f"Page {page + 1}",
@@ -115,6 +116,8 @@ async def watch_title(callback : types.CallbackQuery, state : FSMContext):
     page = int(callback.data.split("_")[4])
     await push_to_history(state, f'TITLES_WATCH_MENU_PAGE_{page}')
     title = await get_title(callback, title_id)
+    data = await state.get_data()
+    await state.update_data(title_data=title)
     await callback.message.edit_text(title['title_text'], reply_markup=get_open_title_panel(title_id))
 
 @router.callback_query(F.data.contains('confirm_delete_title_'))

@@ -42,7 +42,8 @@ async def get_updated_title(event : Union[types.Message, types.CallbackQuery], s
 
     state_data = await state.get_data()
     title_id = state_data.get('title_id')
-    data = await get_title(event, title_id)
+    #data = await get_title(event, title_id)
+    data = state_data.get('title_data')
     title = data['title_data']
     name = state_data.get("title_name", title['name'])
     review = state_data.get("title_review", title['review'])
@@ -62,7 +63,7 @@ async def get_updated_title(event : Union[types.Message, types.CallbackQuery], s
     director = state_data.get("title_director", title['director'])
     start_watch = state_data.get("title_start_watch", title['start_watch'])
     end_watch = state_data.get("title_end_watch", title['end_watch'])
-
+    print(title)
 
     text = (f"{name}  {year_start}\n"
             f"rating - {rating}\n\n"
@@ -77,4 +78,23 @@ async def get_updated_title(event : Union[types.Message, types.CallbackQuery], s
             f"status - {status}"
             )
 
-    return text
+
+
+    #await state.update_data(title_data=t)
+    """
+    {'id': 18,
+    'owner': 'The_EvilDog',
+    'name': '3', 
+    'year_start': 3,
+    'year_end': None,
+    'director': None, 
+    'category': 'MV', 
+    'cover': None, 
+    'start_watch': None, 
+    'end_watch': '2026-04-04', 
+    'status': 'DONE', 
+    'review': '3', 
+    'rating': '3.0'}
+    """
+
+    return str(text)
