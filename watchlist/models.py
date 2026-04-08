@@ -16,6 +16,7 @@ class WatchlistItem(models.Model):
 
     name = models.CharField(max_length=250)
     link = models.URLField(null=True, blank=True)
+    note = models.TextField(null=True, blank=True, max_length=500)
     year_start = models.PositiveIntegerField()
     year_end = models.PositiveIntegerField(null=True, blank=True)
     category = models.CharField(max_length=7,choices=WatchlistItemCategory.choices,

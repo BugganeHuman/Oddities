@@ -19,9 +19,6 @@ class WatchlistItemViewSet(viewsets.ModelViewSet):
         return WatchlistItem.objects.filter(owner= self.request.user)
 
     def perform_create(self, serializer):
-        """
-        надо заполнение для полей -  episodes и seasons (для сириков)
-        """
         title_name = self.request.data.get('name')
         year_start = self.request.data.get('year_start')
         year_end = self.request.data.get('year_end')
@@ -34,22 +31,37 @@ class WatchlistItemViewSet(viewsets.ModelViewSet):
         data = get_id(title_name, year_start)
 
         if not year_end:
-            year_end = get_year_end(data)
+            try:
+                year_end = get_year_end(data)
+            except Exception:
+                pass
 
         if not director:
-            director = get_director(data)
+            try:
+                director = get_director(data)
+            except Exception:
+                pass
 
         if not synopsis:
-            synopsis = get_overview(data)
+            try:
+                synopsis = get_overview(data)
+            except Exception:
+                pass
 
         if data['media_type'] == 'movie' and not runtime:
-            runtime = get_runtime(data)
+            try:
+                runtime = get_runtime(data)
+            except Exception:
+                pass
 
         if data['media_type'] == 'tv' and not seasons or episodes:
-            if not seasons:
-                seasons = get_seasons_and_episodes(data)['seasons']
-            if not episodes:
-                episodes = get_seasons_and_episodes(data)['episodes']
+            try:
+                if not seasons:
+                    seasons = get_seasons_and_episodes(data)['seasons']
+                if not episodes:
+                    episodes = get_seasons_and_episodes(data)['episodes']
+            except Exception:
+                pass
 
         serializer.save(owner = self.request.user, year_end = year_end,
                         director = director, synopsis=synopsis, runtime=runtime,

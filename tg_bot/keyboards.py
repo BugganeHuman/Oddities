@@ -31,33 +31,39 @@ def get_base_add_panel():
 
     return builder.as_markup()
 
-def get_title_category_panel():
+def get_category_panel(kind):
     builder = InlineKeyboardBuilder()
+    if kind == "title":
+        kind = "title"
+    elif kind == "watchlist":
+        kind = "watchlist"
+    else:
+        raise ValueError (f"type - {kind} not for get_category_panel")
 
     builder.row(
-        types.InlineKeyboardButton(text= "🎬 Movie", callback_data="title_category_movie")
+        types.InlineKeyboardButton(text= "🎬 Movie", callback_data=f"{kind}_category_movie")
     )
     builder.row(
-        types.InlineKeyboardButton(text="📺 TV-Series", callback_data="title_category_series")
+        types.InlineKeyboardButton(text="📺 TV-Series", callback_data=f"{kind}_category_series")
     )
     builder.row(
-        types.InlineKeyboardButton(text="⛩️ Anime", callback_data="title_category_anime")
+        types.InlineKeyboardButton(text="⛩️ Anime", callback_data=f"{kind}_category_anime")
     )
     builder.row(
-        types.InlineKeyboardButton(text="🎨 Cartoon", callback_data="title_category_cartoon")
+        types.InlineKeyboardButton(text="🎨 Cartoon", callback_data=f"{kind}_category_cartoon")
     )
     builder.row(
         types.InlineKeyboardButton(text="🔴 Video",
-                callback_data="title_category_video")
+                callback_data=f"{kind}_category_video")
     )
     builder.row(
-        types.InlineKeyboardButton(text="⚖️ Legal case", callback_data="title_category_legal_case")
+        types.InlineKeyboardButton(text="⚖️ Legal case", callback_data=f"{kind}_category_legal_case")
     )
     builder.row(
-        types.InlineKeyboardButton(text="📝 Written content", callback_data="title_category_written_content")
+        types.InlineKeyboardButton(text="📝 Written content", callback_data=f"{kind}_category_written_content")
     )
     builder.row(
-        types.InlineKeyboardButton(text="🌀 Other", callback_data="title_category_other")
+        types.InlineKeyboardButton(text="🌀 Other", callback_data=f"{kind}_category_other")
     )
 
     builder.row(
@@ -201,7 +207,7 @@ def get_title_update_panel():
     )
     return builder.as_markup()
 
-def get_confirm_delete_panel(title_id):
+def get_title_confirm_delete_panel(title_id):
     builder = InlineKeyboardBuilder()
     builder.row(
         types.InlineKeyboardButton(text='💀 Yes I want delete this title',
@@ -211,5 +217,24 @@ def get_confirm_delete_panel(title_id):
     builder.row(
         types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu"),
         types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
+    )
+    return builder.as_markup()
+
+def get_watchlist_confirm_panel():
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        types.InlineKeyboardButton(text="🔗 Link", callback_data="q"),
+        types.InlineKeyboardButton(text="🏷 Note", callback_data="q")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="🗓️ End Year", callback_data="q"),
+        types.InlineKeyboardButton(text="🎥 Director", callback_data="q")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu"),
+        types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="💾 Save", callback_data="q")
     )
     return builder.as_markup()

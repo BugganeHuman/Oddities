@@ -3,20 +3,20 @@ import os
 import asyncio
 import aiohttp
 from aiogram.fsm.context import FSMContext
-from keyboards import (get_base_add_panel, get_title_category_panel,
+from keyboards import (get_base_add_panel, get_category_panel,
                        get_confirm_title_panel, get_title_fix_panel,
                        get_title_status_panel, get_watch_titles_panel,
                        get_open_title_panel, get_title_update_panel,
-                       get_confirm_delete_panel)
+                       get_title_confirm_delete_panel)
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
 from utils import push_to_history, delete_last, get_updated_title
 from datetime import datetime
 from handlers.start import get_start_menu
-from handlers.titles.add_titles import add_review
+from handlers.titles.add_titles import add_title_review
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from typing import Union
-from handlers.titles.add_titles import AddTitle
+from handlers.titles.add_titles import TitleState
 
 router = Router()
 
@@ -123,10 +123,10 @@ async def watch_title(callback : types.CallbackQuery, state : FSMContext):
 @router.callback_query(F.data.contains('confirm_delete_title_'))
 async def run_confirm_delete(callback : types.CallbackQuery, state : FSMContext):
     await callback.answer()
-    title_id = int(callback.data.split('_')[3])
+    title_id = int(callback.data.split('_')[4])
     await push_to_history(state, F"OPEN_TITLE_{title_id}")
     await callback.message.edit_text('Are You Sure?',
-        reply_markup=get_confirm_delete_panel(title_id))
+        reply_markup=get_title_confirm_delete_panel(title_id))
 
 @router.callback_query(F.data.contains('delete_title_'))
 async def delete_title(callback : types.CallbackQuery, state : FSMContext):
@@ -178,7 +178,7 @@ async def update_review(callback : types.CallbackQuery, state : FSMContext):
     data = await state.get_data()
     await push_to_history(state, f"TITLE_UPDATE_PANEL_{data['title_id']}")
     await callback.message.answer('Write new review for Title', reply_markup=get_base_add_panel())
-    await state.set_state(AddTitle.waiting_for_review)
+    await state.set_state(TitleState.waiting_for_review)
 
 @router.callback_query(F.data == 'update_title_rating')
 async def update_rating(callback : types.CallbackQuery, state : FSMContext):
@@ -186,7 +186,7 @@ async def update_rating(callback : types.CallbackQuery, state : FSMContext):
     data = await state.get_data()
     await push_to_history(state, f"TITLE_UPDATE_PANEL_{data['title_id']}")
     await callback.message.answer('Write new rating for Title', reply_markup=get_base_add_panel())
-    await state.set_state(AddTitle.waiting_for_rating)
+    await state.set_state(TitleState.waiting_for_rating)
 
 #@router.callback_query(F.data == "update_title_start_watch"):
 """
@@ -199,16 +199,14 @@ async def update(callback : types.CallbackQuery, state : FSMContext):
     history_item = f"TITLE_UPDATE_PANEL_{data['title_id']}"
     if not history[-1] == history_item:
         await push_to_history(state, history_item)
-    print("__________________DEBUG______________________")
-    print(history)
 
     updating = callback.data.split("_", 2)[2]
     if updating not in ['category', 'status']:
         await callback.message.answer(f'Write new {updating} for Title', reply_markup=get_base_add_panel())
-        title_state = f'AddTitle.waiting_for_{updating}'
+        title_state = f'TitleState.waiting_for_{updating}'
         await state.set_state(eval(title_state))
     if updating == 'category':
-        await callback.message.answer(f'Chose new category for Title', reply_markup=get_title_category_panel())
+        await callback.message.answer(f'Chose new category for Title', reply_markup=get_category_panel('title'))
     if updating == 'status':
         await callback.message.answer(f'Chose new status for Title', reply_markup=get_title_status_panel())
 
