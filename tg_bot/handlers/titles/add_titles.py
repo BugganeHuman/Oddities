@@ -296,7 +296,7 @@ async def add_title_year_end(message : types.Message, state : FSMContext):
                                          reply_markup=get_base_add_panel())
         await state.set_state(TitleState.waiting_for_year_end)
 
-@router.callback_query(F.data == "confirm_panel_save")
+@router.callback_query(F.data == "confirm_title_panel_save")
 async def save_title(callback : types.CallbackQuery, state : FSMContext):
     await callback.answer()
 

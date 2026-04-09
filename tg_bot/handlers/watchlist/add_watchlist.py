@@ -8,7 +8,7 @@ from keyboards import (get_base_add_panel, get_category_panel,
                         get_watchlist_confirm_panel)
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
-from utils import push_to_history, delete_last
+from utils import push_to_history, delete_last, is_url_for_db
 from datetime import datetime
 from handlers.start import get_start_menu
 
@@ -90,3 +90,110 @@ async def add_item_year_start(message : types.Message, state : FSMContext):
     else:
         await push_to_history(state, 'WATCHLIST_STATE_WAITING_FOR_YEAR_START')
         await message.answer('confirm panel', reply_markup=get_watchlist_confirm_panel())
+
+@router.callback_query(F.data == "watchlist_confirm_panel_link")
+async def run_add_item_link(callback : types.CallbackQuery,  state : FSMContext):
+    await callback.answer()
+    await push_to_history(state, 'WATCHLIST_CONFIRM_PANEL')
+    await callback.message.answer("Write the item's link", reply_markup=get_base_add_panel())
+    await state.set_state(WatchlistState.waiting_for_link)
+
+@router.message(WatchlistState.waiting_for_link)
+async def add_item_link(message : types.Message, state : FSMContext):
+    link = message.text
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
+    is_link_correct = is_url_for_db(link)
+    if not is_link_correct:
+        await message.answer('Write the correct link, for example'
+            ' https://www.imdb.com/title/tt0246578/?ref_=rt_t_2',
+            reply_markup=get_base_add_panel())
+        await state.set_state(WatchlistState.waiting_for_link)
+        return
+    else:
+        await state.update_data(item_link=link)
+    if is_update:
+        pass
+    else:
+        await push_to_history(state, 'WATCHLIST_STATE_WAITING_FOR_LINK')
+        await message.answer("confirm panel", reply_markup=get_watchlist_confirm_panel())
+
+@router.callback_query(F.data == "watchlist_confirm_panel_note")
+async def run_add_item_note(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    await push_to_history(state, 'WATCHLIST_CONFIRM_PANEL')
+    await callback.message.answer("Write your note", reply_markup=get_base_add_panel())
+    await state.set_state(WatchlistState.waiting_for_note)
+
+@router.message(WatchlistState.waiting_for_note)
+async def add_item_note(message :  types.Message, state : FSMContext):
+    note = message.text
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
+    if len(note) > 500:
+        await message.answer("Write your note, max length = 500",
+                reply_markup=get_base_add_panel())
+        await state.set_state(WatchlistState.waiting_for_note)
+        return
+    else:
+        await state.update_data(item_note=note)
+    if is_update:
+        pass
+    else:
+        await push_to_history(state, "WATCHLIST_STATE_WAITING_FOR_NOTE")
+        await message.answer("confirm panel", reply_markup=get_watchlist_confirm_panel())
+
+@router.callback_query(F.data == "watchlist_confirm_panel_year_end")
+async def run_add_item_year_end(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    await push_to_history(state, "WATCHLIST_CONFIRM_PANEL")
+    await callback.message.answer("Write the item's end year",
+                reply_markup=get_base_add_panel())
+    await state.set_state(WatchlistState.waiting_for_year_end)
+
+@router.message(WatchlistState.waiting_for_year_end)
+async def add_item_year_end(message : types.Message, state : FSMContext):
+    year_end = message.text
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
+    try:
+        Decimal(year_end)
+    except Exception:
+        await message.answer("Write the correct end year for example 2005",
+                                reply_markup=get_base_add_panel())
+        await state.set_state(WatchlistState.waiting_for_year_end)
+        return
+    await state.update_data(item_year_end=year_end)
+    if is_update:
+        pass
+    else:
+        await push_to_history(state, 'WATCHLIST_STATE_WAITING_FOR_YEAR_END')
+        await message.answer("confirm panel", reply_markup=get_watchlist_confirm_panel())
+
+@router.callback_query(F.data == "watchlist_confirm_panel_director")
+async def run_add_item_director(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    await push_to_history(state, 'WATCHLIST_CONFIRM_PANEL')
+    await callback.message.answer("Write the item's Director", reply_markup=get_base_add_panel())
+    await state.set_state(WatchlistState.waiting_for_director)
+
+@router.message(WatchlistState.waiting_for_director)
+async def add_item_director(message : types.Message, state : FSMContext):
+    director = message.text
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
+    if len(director) > 150:
+        await message.answer("Write the item's Director, max length = 150",
+                            reply_markup=get_base_add_panel())
+        await state.set_state(WatchlistState.waiting_for_director)
+        return
+    await state.update_data(item_director=director)
+    if is_update:
+        pass
+    else:
+        await push_to_history(state, "WATCHLIST_STATE_WAITING_FOR_DIRECTOR")
+        await message.answer("confirm panel", reply_markup=get_watchlist_confirm_panel())
+
+@router.callback_query(F.data == "confirm_watchlist_panel_save")
+async def save_item(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()

@@ -88,7 +88,7 @@ def get_confirm_title_panel():
         types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
     )
     builder.row(
-        types.InlineKeyboardButton(text="💾 Save", callback_data="confirm_panel_save")
+        types.InlineKeyboardButton(text="💾 Save", callback_data="confirm_title_panel_save")
     )
 
     return builder.as_markup()
@@ -223,18 +223,18 @@ def get_title_confirm_delete_panel(title_id):
 def get_watchlist_confirm_panel():
     builder = InlineKeyboardBuilder()
     builder.row(
-        types.InlineKeyboardButton(text="🔗 Link", callback_data="q"),
-        types.InlineKeyboardButton(text="🏷 Note", callback_data="q")
+        types.InlineKeyboardButton(text="🔗 Link", callback_data="watchlist_confirm_panel_link"),
+        types.InlineKeyboardButton(text="🏷 Note", callback_data="watchlist_confirm_panel_note")
     )
     builder.row(
-        types.InlineKeyboardButton(text="🗓️ End Year", callback_data="q"),
-        types.InlineKeyboardButton(text="🎥 Director", callback_data="q")
+        types.InlineKeyboardButton(text="🗓️ End Year", callback_data="watchlist_confirm_panel_year_end"),
+        types.InlineKeyboardButton(text="🎥 Director", callback_data="watchlist_confirm_panel_director")
     )
     builder.row(
         types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu"),
         types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
     )
     builder.row(
-        types.InlineKeyboardButton(text="💾 Save", callback_data="q")
+        types.InlineKeyboardButton(text="💾 Save", callback_data="confirm_watchlist_panel_save")
     )
     return builder.as_markup()

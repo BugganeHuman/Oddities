@@ -1,6 +1,7 @@
 from aiogram.fsm.context import FSMContext
 from aiogram import Router, F, types
 from typing import Union
+import re
 
 
 async def delete_last(state : FSMContext):
@@ -121,3 +122,16 @@ async def get_updated_title(event : Union[types.Message, types.CallbackQuery], s
     }
 
     return result
+
+
+def is_url_for_db(text: str) -> bool:
+    if not text.startswith(('http://', 'https://')):
+        return False
+    url_pattern = re.compile(
+        r'^https?://' 
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|' 
+        r'localhost|'  
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
+        r'(?::\d+)?'  
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    return bool(url_pattern.match(text))

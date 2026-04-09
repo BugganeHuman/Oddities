@@ -12,7 +12,8 @@ from handlers.titles.add_titles import TitleState
 from handlers.titles.watch_titles import get_all_titles, get_title
 from keyboards import (get_base_add_panel, get_category_panel,
                        get_confirm_title_panel, get_title_fix_panel,
-                       get_watch_titles_panel, get_open_title_panel)
+                       get_watch_titles_panel, get_open_title_panel,
+                       get_watchlist_confirm_panel)
 from utils import push_to_history, get_updated_title
 from handlers.watchlist.add_watchlist import WatchlistState
 
@@ -81,13 +82,10 @@ async def to_back(callback : types.CallbackQuery, state : FSMContext):
         page = int(last_panel.split('_')[4])
         await callback.message.edit_text(
             f"Titles Page {page}",
-            reply_markup=get_watch_titles_panel(titles, page=page)
-        )
+            reply_markup=get_watch_titles_panel(titles, page=page))
     elif last_panel.startswith("OPEN_TITLE_"):
         title_id = int(last_panel.split('_')[2])
         data = await state.get_data()
-        #title = await get_title(callback, title_id)
-        #await callback.message.edit_text(title['title_text'], reply_markup=get_open_title_panel(title_id))
         title = await get_updated_title(callback, state)
         await callback.message.edit_text(title['text'], reply_markup=get_open_title_panel(title_id))
     elif last_panel.startswith("TITLE_UPDATE_PANEL_"):
@@ -103,5 +101,21 @@ async def to_back(callback : types.CallbackQuery, state : FSMContext):
                                       reply_markup=get_base_add_panel())
         await state.set_state(WatchlistState.waiting_for_name)
     elif last_panel == "WATCHLIST_STATE_WAITING_FOR_YEAR_START":
-        await callback.message.answer("Write the start year of item", reply_markup=get_base_add_panel())
+        await callback.message.answer("Write the start year of item",
+                                        reply_markup=get_base_add_panel())
         await state.set_state(WatchlistState.waiting_for_year_start)
+    elif last_panel == "WATCHLIST_CONFIRM_PANEL":
+        await callback.message.edit_text('confirm panel', reply_markup=get_watchlist_confirm_panel())
+    elif last_panel == "WATCHLIST_STATE_WAITING_FOR_LINK":
+        await callback.message.answer("Write the item's link", reply_markup=get_base_add_panel())
+        await state.set_state(WatchlistState.waiting_for_link)
+    elif last_panel == "WATCHLIST_STATE_WAITING_FOR_NOTE":
+        await callback.message.answer("Write your note", reply_markup=get_base_add_panel())
+        await state.set_state(WatchlistState.waiting_for_note)
+    elif last_panel == "WATCHLIST_STATE_WAITING_FOR_YEAR_END":
+        await callback.message.answer("Write the item's end year",
+                                      reply_markup=get_base_add_panel())
+        await state.set_state(WatchlistState.waiting_for_year_end)
+    elif last_panel == "WATCHLIST_STATE_WAITING_FOR_DIRECTOR":
+        await callback.message.answer("Write the item's Director", reply_markup=get_base_add_panel())
+        await state.set_state(WatchlistState.waiting_for_director)
