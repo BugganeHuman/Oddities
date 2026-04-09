@@ -28,8 +28,8 @@ class TitleViewSet(viewsets.ModelViewSet):
         year_end = self.request.data.get('year_end')
         director = self.request.data.get('director')
         cover = self.request.data.get('cover')
-        data = get_id(title_name, year_start)
         category = self.request.data.get('category')
+        data = get_id(title_name, year_start)
 
         if category in ['VD', 'LG', 'READ', 'OTHER']:
             serializer.save(owner=self.request.user, director=director, year_end=year_end)

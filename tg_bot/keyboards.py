@@ -5,14 +5,29 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 def get_start_panel():
     builder = InlineKeyboardBuilder()
-
+    """
     builder.row(
         types.InlineKeyboardButton(text="📝 Add Title", callback_data="add_title"),
         types.InlineKeyboardButton(text="🗂️ Open Titles", callback_data="open_titles")
     )
-
     builder.row(
         types.InlineKeyboardButton(text="📌 Add Watchlist Item", callback_data="add_watchlist_item"),
+        types.InlineKeyboardButton(text="🗒️ Open Watchlist", callback_data="open_watchlist")
+    )
+    builder.row (
+        types.InlineKeyboardButton(text="⚙️ Account Actions", callback_data="account_actions")
+    )
+    """
+    builder.row(
+        types.InlineKeyboardButton(text="📝 Add Title", callback_data="add_title")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="🗂️ Open Titles", callback_data="open_titles")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="📌 Add Watchlist Item", callback_data="add_watchlist_item")
+    )
+    builder.row(
         types.InlineKeyboardButton(text="🗒️ Open Watchlist", callback_data="open_watchlist")
     )
     builder.row (

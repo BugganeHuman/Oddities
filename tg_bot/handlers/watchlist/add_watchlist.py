@@ -50,7 +50,7 @@ async def choose_item_category(callback : types.CallbackQuery, state : FSMContex
     chosen_category = categories.get(callback.data, "OTHER")
     data = await state.get_data()
     is_update = data.get('is_update', False)
-    await state.update_data(item_categoty=chosen_category)
+    await state.update_data(item_category=chosen_category)
     if is_update:
         pass
     else:
@@ -197,3 +197,52 @@ async def add_item_director(message : types.Message, state : FSMContext):
 @router.callback_query(F.data == "confirm_watchlist_panel_save")
 async def save_item(callback : types.CallbackQuery, state : FSMContext):
     await callback.answer()
+    state_data = await state.get_data()
+    category = state_data.get('item_category')
+    name = state_data.get('item_name')
+    year_start = state_data.get('item_year_start')
+    note = ""
+    link = ""
+    year_end = ""
+    director = ""
+
+    post_data = {
+        'name' : name,
+        'category' : category,
+        'year_start' : year_start
+    }
+
+    if 'item_note' in state_data:
+        note = state_data.get('item_note')
+        post_data['note'] = note
+    if 'item_link' in state_data:
+        link = state_data.get('item_link')
+        post_data['link'] = link
+    if 'item_year_end' in state_data:
+        year_end = state_data.get('item_year_end')
+        post_data['year_end'] = year_end
+    if 'item_director' in state_data:
+        director = state_data.get('item_director')
+        post_data['director'] = director
+
+    url = "http://web:8000/api/watchlist/item/"
+
+    headers = {
+        "X-Bot-Key" : str(os.getenv("BOT_MASTER_KEY")),
+        "X-Telegram-Id" : str(callback.from_user.id),
+        "Content-Type": "application/json"
+    }
+
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.post(url, headers=headers, json=post_data) as response:
+                if response.status in [200, 201]:
+                    await state.clear()
+                    await callback.message.edit_text("Item Saved")
+                    await asyncio.sleep(1.5)
+                    await get_start_menu(callback)
+                else:
+                    await callback.message.answer(f"error {response.status}")
+        except Exception as e:
+            print("======DEBUG========")
+            print(e)
