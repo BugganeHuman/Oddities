@@ -13,9 +13,10 @@ from handlers.titles.watch_titles import get_all_titles, get_title
 from keyboards import (get_base_add_panel, get_category_panel,
                        get_confirm_title_panel, get_title_fix_panel,
                        get_watch_titles_panel, get_open_title_panel,
-                       get_watchlist_confirm_panel)
+                       get_watchlist_confirm_panel,get_watch_watchlist_panel)
 from utils import push_to_history, get_updated_title
 from handlers.watchlist.add_watchlist import WatchlistState
+from handlers.watchlist.watch_watchlist import get_all_items
 
 router = Router()
 
@@ -119,3 +120,9 @@ async def to_back(callback : types.CallbackQuery, state : FSMContext):
     elif last_panel == "WATCHLIST_STATE_WAITING_FOR_DIRECTOR":
         await callback.message.answer("Write the item's Director", reply_markup=get_base_add_panel())
         await state.set_state(WatchlistState.waiting_for_director)
+    elif last_panel.startswith("WATCHLIST_WATCH_MENU_PAGE_"):
+        items = await get_all_items(callback)
+        page = int(last_panel.split('_')[4])
+        await callback.message.edit_text(
+            f"Watchlist Page {page}",
+            reply_markup=get_watch_watchlist_panel(items, page=page))

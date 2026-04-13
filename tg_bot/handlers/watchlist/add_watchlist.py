@@ -239,7 +239,7 @@ async def save_item(callback : types.CallbackQuery, state : FSMContext):
                 if response.status in [200, 201]:
                     await state.clear()
                     await callback.message.edit_text("Item Saved")
-                    await asyncio.sleep(1.5)
+                    await asyncio.sleep(1)
                     await get_start_menu(callback)
                 else:
                     await callback.message.answer(f"error {response.status}")

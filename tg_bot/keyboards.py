@@ -253,3 +253,37 @@ def get_watchlist_confirm_panel():
         types.InlineKeyboardButton(text="💾 Save", callback_data="confirm_watchlist_panel_save")
     )
     return builder.as_markup()
+
+def get_watch_watchlist_panel(items_dict, page: int = 0):
+    builder = InlineKeyboardBuilder()
+    ITEMS_PER_PAGE = 9
+    items = list(items_dict.items())
+    start_index = page * ITEMS_PER_PAGE
+    end_index = start_index + ITEMS_PER_PAGE
+
+    # Берем только нужную пачку (например, с 0 по 10)
+    current_page_items = items[start_index:end_index]
+
+    # Кнопки с названиями фильмов
+    for item_id, data in current_page_items:
+        builder.row(types.InlineKeyboardButton(
+            text=f"{data['name']} |  {data['year_start']}",
+            callback_data=f"open_item_{item_id}_page_{page}"
+        ))
+
+    nav_buttons = []
+    if page > 0:
+        nav_buttons.append(types.InlineKeyboardButton(text="⬅️ back",
+                callback_data=f"open_watchlist_page_{page - 1}"))
+
+    if end_index < len(items):
+        nav_buttons.append(types.InlineKeyboardButton(text="next➡️",
+                callback_data=f"open_watchlist_page_{page + 1}"))
+
+    if nav_buttons:
+        builder.row(*nav_buttons)
+    builder.row(
+        types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu")
+    )
+
+    return builder.as_markup()
