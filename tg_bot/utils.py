@@ -8,7 +8,6 @@ async def delete_last(state : FSMContext):
     data = await state.get_data()
     history = data.get('history', [])
     print(history)
-    print("__________________DEBUG______________________")
     history.pop()
     await state.update_data(history=history)
     print(history)
@@ -21,7 +20,6 @@ async def push_to_history(state : FSMContext, screen_id : str):
 
 
 async def get_updated_title(event : Union[types.Message, types.CallbackQuery], state: FSMContext):
-
     categories = {
         "title_category_movie" : "MV",
         "title_category_series" : "SR",
@@ -43,10 +41,11 @@ async def get_updated_title(event : Union[types.Message, types.CallbackQuery], s
     updated = {}
 
     state_data = await state.get_data()
+
     title_id = state_data.get('title_id')
-    #data = await get_title(event, title_id)
-    data = state_data.get('title_data')
-    title = data['title_data']
+    title_data = state_data.get('title_data')
+    title = title_data['title_data']
+
     name = state_data.get("title_name", title['name'])
     review = state_data.get("title_review", title['review'])
     rating = state_data.get("title_rating", title['rating'])
@@ -99,28 +98,76 @@ async def get_updated_title(event : Union[types.Message, types.CallbackQuery], s
     if "title_end_watch" in state_data:
         updated['end_watch'] = end_watch
 
-    #await state.update_data(title_data=t)
-    """
-    {'id': 18,
-    'owner': 'The_EvilDog',
-    'name': '3', 
-    'year_start': 3,
-    'year_end': None,
-    'director': None, 
-    'category': 'MV', 
-    'cover': None, 
-    'start_watch': None, 
-    'end_watch': '2026-04-04', 
-    'status': 'DONE', 
-    'review': '3', 
-    'rating': '3.0'}
-    """
-
     result = {
         "text" : str(text),
         "updated" : updated
     }
+    return result
 
+async def get_updated_item(state: FSMContext):
+    updated = {}
+    state_data = await state.get_data()
+    item_data = state_data['item_data']
+    item = item_data['data']
+
+    name = state_data.get('item_name', item['name'])
+    category = state_data.get('item_category', item['category'])
+    year_start = state_data.get('item_year_start', item['year_start'])
+    year_end = state_data.get('item_year_end', item['year_end'])
+    link = state_data.get('item_link', item['link'])
+    director = state_data.get('item_director', item['director'])
+    note = state_data.get('item_note', item['note'])
+    synopsis = state_data.get('item_synopsis', item['synopsis'])
+    runtime = state_data.get('item_runtime', item['runtime'])
+    episodes = state_data.get('item_episodes', item['episodes'])
+    seasons = state_data.get('item_seasons', item['seasons'])
+
+    text = f"{name} |  {year_start}  |  {category}\n\n"
+
+    if synopsis:
+        text += f"{synopsis}\n\n"
+    if director:
+        text += f"Director - {director}\n"
+    if year_end:
+        text += f"End Year - {year_end}\n"
+    if runtime:
+        text += f"Runtime - {runtime}\n"
+    if seasons:
+        text += f"Seasons - {director}\n"
+    if episodes:
+        text += f"Episodes - {episodes}\n\n"
+    if note:
+        text += f"Note - {note}\n"
+    if link:
+        text += f"Link - {link}\n"
+
+    if "item_name" in state_data:
+        updated['name'] = name
+    if "item_director" in state_data:
+        updated['director'] = director
+    if "item_year_start" in state_data:
+        updated['year_start'] = year_start
+    if "item_year_end" in state_data:
+        updated['year_end'] = year_end
+    if "item_link" in state_data:
+        updated['link'] = link
+    if "item_note" in state_data:
+        updated['note'] = note
+    if "item_category" in state_data:
+        updated['category'] = category
+    if "item_synopsis" in state_data:
+        updated['synopsis'] = synopsis
+    if "item_runtime" in state_data:
+        updated['runtime'] = runtime
+    if "item_episodes" in state_data:
+        updated['episodes'] = episodes
+    if "item_seasons" in state_data:
+        updated['seasons'] = seasons
+
+    result = {
+        'text' : str(text),
+        'updated' : updated
+    }
     return result
 
 

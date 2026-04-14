@@ -5,8 +5,8 @@ import aiohttp
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 from keyboards import (get_base_add_panel, get_category_panel,
-                        get_watchlist_confirm_panel,get_watch_watchlist_panel
-                        )
+                        get_watchlist_confirm_panel,get_watch_watchlist_panel,
+                        get_open_item_panel, get_confirm_delete_panel)
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
 from utils import push_to_history, delete_last, is_url_for_db
@@ -55,16 +55,6 @@ async def get_item(event : Union[types.Message, types.CallbackQuery], item_id):
 
     text = f"{item['name']} |  {item.get('year_start')}  |  {item.get('category')}\n\n"
 
-    """
-            f"{item.get('synopsis', '')}\n\n"
-            f"Director - {item.get('director', '')}\n"
-            f"End Year = {item.get('year_end', '')}\n"
-            f"Runtime - {item.get('runtime','')}\n"
-            f"Seasons - {item.get('seasons', '')}\n"
-            f"Episodes - {item.get('episodes', '')}\n\n"
-            f"Note - {item.get('note', '')}\n"
-            f"Link - {item.get('link', '')}"
-    """
     if item['synopsis']:
         text += f"{item['synopsis']}\n\n"
     if item['director']:
@@ -81,8 +71,6 @@ async def get_item(event : Union[types.Message, types.CallbackQuery], item_id):
         text += f"Note - {item['note']}\n"
     if item['link']:
         text += f"Link - {item['link']}\n"
-
-
 
     # тут наверно надо сделать тему что в text вставялется доп инфа только если она есть
     # а если нет и не вставляется
@@ -129,4 +117,48 @@ async def open_item(callback : types.CallbackQuery, state : FSMContext):
     page = int(callback.data.split("_")[4])
     await push_to_history(state, f"WATCHLIST_WATCH_MENU_PAGE_{page}")
     item = await get_item(callback, item_id)
-    await callback.message.edit_text(item['text'], reply_markup=get_base_add_panel())
+    await state.update_data(item_data=item)
+    await callback.message.edit_text(item['text'], reply_markup=get_open_item_panel(item_id))
+
+@router.callback_query(F.data.contains("confirm_delete_item_"))
+async def confirm_delete_item(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    item_id = int(callback.data.split("_")[3])
+    await push_to_history(state, f"OPEN_ITEM_{item_id}")
+    await callback.message.edit_text('Are You Sure?',
+        reply_markup=get_confirm_delete_panel(item_id, 'item'))
+
+@router.callback_query(F.data.contains('delete_item_'))
+async def delete_item(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    item_id = int(callback.data.split('_')[2])
+    url= f"http://web:8000/api/watchlist/item/{item_id}/"
+    data = await state.get_data()
+    # это что бы удалить последний элемент из history и можно было делать back
+    pages = [key for key in data['history'] if key.startswith('WATCHLIST_WATCH_MENU_PAGE_')]
+    page = int(pages[-1].split('_')[4])
+    headers = {
+        "X-Bot-Key": str(os.getenv("BOT_MASTER_KEY")),
+        "X-Telegram-Id": str(callback.from_user.id),
+        "Content-Type": "application/json"
+    }
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.delete(url, headers=headers) as response:
+                if response.status == 204:
+                    await callback.message.edit_text('Item Have Deleted')
+                    await asyncio.sleep(2)
+                    await callback.message.edit_text(
+                    f"Page {page}",
+                        reply_markup=get_watch_watchlist_panel(await get_all_items(callback), page=page)
+                        )
+                else:
+                    print("status - ", response.status)
+                    await callback.message.edit_text('delete error')
+                    await asyncio.sleep(2)
+                    await callback.message.edit_text(
+                    f"Page {page}",
+                        reply_markup=get_watch_watchlist_panel(await get_all_items(callback), page=page)
+                        )
+        except Exception as e:
+            print(e)

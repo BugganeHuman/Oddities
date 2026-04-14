@@ -222,11 +222,18 @@ def get_title_update_panel():
     )
     return builder.as_markup()
 
-def get_title_confirm_delete_panel(title_id):
+def get_confirm_delete_panel(element_id, kind):
+    if kind == 'title':
+        pass
+    elif kind == 'item':
+        pass
+    else:
+        raise ValueError (f"kind='{kind}', kind may be only 'title' or 'item'")
+
     builder = InlineKeyboardBuilder()
     builder.row(
-        types.InlineKeyboardButton(text='💀 Yes I want delete this title',
-                callback_data=f'delete_title_{title_id}'),
+        types.InlineKeyboardButton(text=f'💀 Yes I want delete this {kind}',
+                callback_data=f'delete_{kind}_{element_id}'),
         types.InlineKeyboardButton(text="🛡️ No I don't want delete ", callback_data='to_back')
     )
     builder.row(
@@ -286,4 +293,17 @@ def get_watch_watchlist_panel(items_dict, page: int = 0):
         types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu")
     )
 
+    return builder.as_markup()
+
+def get_open_item_panel(item_id):
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        types.InlineKeyboardButton(text="❌ Delete", callback_data=f"confirm_delete_item_{item_id}"),
+        types.InlineKeyboardButton(text="✏️ Update", callback_data=f"panel_update_item_{item_id}"),
+        types.InlineKeyboardButton(text="✅ Rate", callback_data=f'rate_item_{item_id}')
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu"),
+        types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
+    )
     return builder.as_markup()

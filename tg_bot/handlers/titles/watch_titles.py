@@ -7,7 +7,7 @@ from keyboards import (get_base_add_panel, get_category_panel,
                        get_confirm_title_panel, get_title_fix_panel,
                        get_title_status_panel, get_watch_titles_panel,
                        get_open_title_panel, get_title_update_panel,
-                       get_title_confirm_delete_panel)
+                       get_confirm_delete_panel)
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
 from utils import push_to_history, delete_last, get_updated_title
@@ -123,10 +123,10 @@ async def watch_title(callback : types.CallbackQuery, state : FSMContext):
 @router.callback_query(F.data.contains('confirm_delete_title_'))
 async def run_confirm_delete(callback : types.CallbackQuery, state : FSMContext):
     await callback.answer()
-    title_id = int(callback.data.split('_')[4])
+    title_id = int(callback.data.split('_')[3])
     await push_to_history(state, F"OPEN_TITLE_{title_id}")
     await callback.message.edit_text('Are You Sure?',
-        reply_markup=get_title_confirm_delete_panel(title_id))
+        reply_markup=get_confirm_delete_panel(title_id, 'title'))
 
 @router.callback_query(F.data.contains('delete_title_'))
 async def delete_title(callback : types.CallbackQuery, state : FSMContext):
@@ -134,6 +134,7 @@ async def delete_title(callback : types.CallbackQuery, state : FSMContext):
     title_id = int(callback.data.split('_')[2])
     url= f"http://web:8000/api/titles/title/{title_id}/"
     data = await state.get_data()
+    # это что бы удалить последний элемент из history и можно было делать back
     pages = [key for key in data['history'] if key.startswith('TITLES_WATCH_MENU_PAGE_')]
     page = int(pages[-1].split('_')[4])
     headers = {
