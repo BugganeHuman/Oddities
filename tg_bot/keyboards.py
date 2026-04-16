@@ -246,7 +246,7 @@ def get_watchlist_confirm_panel():
     builder = InlineKeyboardBuilder()
     builder.row(
         types.InlineKeyboardButton(text="🔗 Link", callback_data="watchlist_confirm_panel_link"),
-        types.InlineKeyboardButton(text="🏷 Note", callback_data="watchlist_confirm_panel_note")
+        types.InlineKeyboardButton(text="🗒 Note", callback_data="watchlist_confirm_panel_note")
     )
     builder.row(
         types.InlineKeyboardButton(text="🗓️ End Year", callback_data="watchlist_confirm_panel_year_end"),
@@ -306,4 +306,38 @@ def get_open_item_panel(item_id):
         types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu"),
         types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
     )
+    return builder.as_markup()
+
+def get_item_update_panel():
+    builder = InlineKeyboardBuilder()
+
+    builder.row(
+        types.InlineKeyboardButton(text='📂 Category', callback_data='update_item_category'),
+        types.InlineKeyboardButton(text='🏷️ Name', callback_data='update_item_name')
+    )
+    builder.row(
+        types.InlineKeyboardButton(text='🔗 Link', callback_data='update_item_link'),
+        types.InlineKeyboardButton(text='🗒 Note', callback_data='update_item_note')
+    )
+    builder.row(
+        types.InlineKeyboardButton(text='📜 Synopsis', callback_data='update_item_synopsis'),
+        types.InlineKeyboardButton(text='🎥 Director', callback_data='update_item_director')
+    )
+    builder.row(
+        types.InlineKeyboardButton(text='📅 Start Year', callback_data='update_item_year_start'),
+        types.InlineKeyboardButton(text='🗓️ End Year', callback_data='update_item_year_end')
+    )
+    builder.row(
+        types.InlineKeyboardButton(text='📀 Seasons', callback_data='update_item_seasons'),
+        types.InlineKeyboardButton(text='🎞 Episodes', callback_data='update_item_episodes'),
+        types.InlineKeyboardButton(text='⏱ Runtime', callback_data='update_item_runtime')
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu"),
+        types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="💾 Save", callback_data="save_updated_item")
+    )
+    
     return builder.as_markup()

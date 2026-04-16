@@ -79,6 +79,8 @@ async def to_back(callback : types.CallbackQuery, state : FSMContext):
         await callback.message.edit_text("Write the title's end year",
                                          reply_markup=get_base_add_panel())
         await state.set_state(TitleState.waiting_for_year_end)
+    elif last_panel == "TITLE_CONFIRM_PANEL":
+        await callback.message.edit_text("check", reply_markup=get_confirm_title_panel())
     elif last_panel.startswith("TITLES_WATCH_MENU_PAGE_"):
         titles = await get_all_titles(callback)
         page = int(last_panel.split('_')[4])
@@ -88,11 +90,11 @@ async def to_back(callback : types.CallbackQuery, state : FSMContext):
     elif last_panel.startswith("OPEN_TITLE_"):
         title_id = int(last_panel.split('_')[2])
         data = await state.get_data()
-        title = await get_updated_title(callback, state)
+        title = await get_updated_title(state)
         await callback.message.edit_text(title['text'], reply_markup=get_open_title_panel(title_id))
     elif last_panel.startswith("TITLE_UPDATE_PANEL_"):
         title_id = int(last_panel.split('_')[3])
-        title = await get_updated_title(callback, state)
+        title = await get_updated_title(state)
         await callback.message.edit_text(title['text'],
                 reply_markup=get_title_update_panel())
     elif last_panel == "WATCHLIST_PANEL_ADD_CATEGORY":

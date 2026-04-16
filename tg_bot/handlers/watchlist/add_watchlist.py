@@ -48,9 +48,9 @@ async def choose_item_category(callback : types.CallbackQuery, state : FSMContex
         "watchlist_category_other" : "OTHER"
     }
     chosen_category = categories.get(callback.data, "OTHER")
+    await state.update_data(item_category=chosen_category)
     data = await state.get_data()
     is_update = data.get('is_update', False)
-    await state.update_data(item_category=chosen_category)
     if is_update:
         pass
     else:

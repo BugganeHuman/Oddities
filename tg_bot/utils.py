@@ -2,7 +2,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram import Router, F, types
 from typing import Union
 import re
-
+import os
+import aiohttp
 
 async def delete_last(state : FSMContext):
     data = await state.get_data()
@@ -18,18 +19,49 @@ async def push_to_history(state : FSMContext, screen_id : str):
     history.append(screen_id)
     await state.update_data(history=history)
 
-
-async def get_updated_title(event : Union[types.Message, types.CallbackQuery], state: FSMContext):
-    categories = {
-        "title_category_movie" : "MV",
-        "title_category_series" : "SR",
-        "title_category_anime" : "ANM",
-        "title_category_cartoon" : "CRT",
-        "title_category_video" : "VD",
-        "title_category_legal_case" : "LG",
-        "title_category_written_content" : "READ",
-        "title_category_other" : "OTHER"
+async def get_title_text(state):
+    statuses = {
+        "title_status_panel_DONE" : "DONE",
+        "title_status_panel_DROPPED" : "DROP",
+        "title_status_panel_REVISIT" : "RVS",
+        "title_status_panel_WATCHING" : "WATCH"
     }
+    state_data = await state.get_data()
+
+    name = state_data.get("title_name")
+    review = state_data.get("title_review")
+    rating = state_data.get("title_rating")
+    year_start = state_data.get("title_year_start")
+    year_end = state_data.get("title_year_end")
+    director = state_data.get("title_director")
+    start_watch = state_data.get("title_start_watch")
+    end_watch = state_data.get("title_end_watch")
+    category = ""
+    status = ""
+
+    text = (f"{name}  {year_start} | {category}\n"
+            f"rating - {rating}\n\n"
+            f"_____________________________________________________\n"
+            f"{review}\n"
+            f"_____________________________________________________\n\n"
+            )
+
+    if "title_director" in state_data:
+        text += f"Director - {director}\n"
+    if "title_start_watch" in state_data:
+        text += f"Start watch - {start_watch}\n"
+    if "title_end_watch" in state_data:
+        text += f"End watch - {end_watch}\n"
+    if "title_year_end" in state_data:
+        text += f"End year - {year_end}\n"
+    if "title_status" in state_data:
+        status = statuses[state_data['title_status']]
+        text += f"Status - {status}\n"
+
+    return text
+
+
+async def get_updated_title(state: FSMContext):
 
     statuses = {
         "title_status_panel_DONE" : "DONE",
@@ -52,12 +84,12 @@ async def get_updated_title(event : Union[types.Message, types.CallbackQuery], s
     year_start = state_data.get("title_year_start", title['year_start'])
     year_end = state_data.get("title_year_end", title['year_end'])
     category = ""
+    status = ""
     if "title_category" in state_data:
-        category = categories[state_data["title_category"]]
+        category = state_data["title_category"]
         updated['category'] = category
     else:
         category = title['category']
-    status = ""
     if "title_status" in state_data:
         status = statuses[state_data['title_status']]
         updated['status'] = status
@@ -68,41 +100,48 @@ async def get_updated_title(event : Union[types.Message, types.CallbackQuery], s
     end_watch = state_data.get("title_end_watch", title['end_watch'])
     print(title)
 
-    text = (f"{name}  {year_start}\n"
+    text = (f"{name}  {year_start} | {category}\n"
             f"rating - {rating}\n\n"
             f"_____________________________________________________\n"
             f"{review}\n"
             f"_____________________________________________________\n\n"
-            f"category - {category}\n"
-            f"director - {director}\n"
-            f"start watch - {start_watch}\n"
-            f"end watch - {end_watch}\n"
-            f"year_end - {year_end}\n"
-            f"status - {status}"
             )
 
+    if "title_director" in state_data or title['director']:
+        updated['director'] = director
+        text += f"Director - {director}\n"
+    if "title_start_watch" in state_data or title['start_watch']:
+        updated['start_watch'] = start_watch
+        text += f"Start watch - {start_watch}\n"
+    if "title_end_watch" in state_data or title['end_watch']:
+        updated['end_watch'] = end_watch
+        text += f"End watch - {end_watch}\n"
+    if "title_year_end" in state_data or title['year_end']:
+        updated['year_end'] = year_end
+        text += f"End year - {year_end}\n"
+    if "title_status" in state_data or title['status']:
+        try:
+            status = statuses[state_data['title_status']]
+        except Exception:
+            status = title['status']
+        text += f"Status - {status}\n"
     if "title_name" in state_data:
         updated['name'] = name
     if "title_rating" in state_data:
         updated['rating'] = rating
-    if "title_director" in state_data:
-        updated['director'] = director
     if "title_year_start" in state_data:
         updated['year_start'] = year_start
-    if "title_year_end" in state_data:
-        updated['year_end'] = year_end
     if "title_review" in state_data:
         updated['review'] = review
-    if "title_start_watch" in state_data:
-        updated['start_watch'] = start_watch
-    if "title_end_watch" in state_data:
-        updated['end_watch'] = end_watch
 
     result = {
         "text" : str(text),
         "updated" : updated
     }
     return result
+
+
+
 
 async def get_updated_item(state: FSMContext):
     updated = {}
@@ -164,7 +203,22 @@ async def get_updated_item(state: FSMContext):
     if "item_seasons" in state_data:
         updated['seasons'] = seasons
 
+    data = {
+        'name' : name,
+        'year_start' : year_start,
+        'category' : category,
+        'year_end' : year_end,
+        'link' : link,
+        'note' : note,
+        'synopsis' : synopsis,
+        'director' : director,
+        'seasons' : seasons,
+        'episodes' : episodes,
+        'runtime' : runtime
+    }
+
     result = {
+        'data' : data,
         'text' : str(text),
         'updated' : updated
     }
@@ -182,3 +236,23 @@ def is_url_for_db(text: str) -> bool:
         r'(?::\d+)?'  
         r'(?:/?|[/?]\S+)$', re.IGNORECASE)
     return bool(url_pattern.match(text))
+
+async def delete_rated_item(callback : types.CallbackQuery, state : FSMContext):
+    data = await state.get_data()
+
+    is_was_item = data.get('is_was_item', False)
+    item_id = data.get('item_id')
+    url = f"http://web:8000/api/watchlist/item/{item_id}/"
+
+    headers = {
+        "X-Bot-Key": str(os.getenv("BOT_MASTER_KEY")),
+        "X-Telegram-Id": str(callback.from_user.id),
+        "Content-Type": "application/json"
+    }
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.delete(url, headers=headers) as response:
+                pass
+        except Exception as e:
+            print(e)
+

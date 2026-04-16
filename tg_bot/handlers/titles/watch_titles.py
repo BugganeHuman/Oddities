@@ -58,18 +58,22 @@ async def get_title(event : Union[types.Message, types.CallbackQuery], title_id)
         except Exception as e:
             print(e)
 
-    text = (f"{title['name']}  {title['year_start']}\n"
+    text = (f"{title['name']}  {title['year_start']} | {title['category']}\n"
             f"rating - {title['rating']}\n\n"
             f"_____________________________________________________\n"
             f"{title['review']}\n"
             f"_____________________________________________________\n\n"
-            f"category - {title['category']}\n"
-            f"director - {title['director']}\n"
-            f"start watch - {title['start_watch']}\n"
-            f"end watch - {title['end_watch']}\n"
-            f"year_end - {title['year_end']}\n"
-            f"status - {title['status']}"
             )
+    if title['director']:
+        text += f"Director - {title['director']}\n"
+    if title['start_watch']:
+        text += f"Start watch - {title['start_watch']}\n"
+    if title['end_watch']:
+        text += f"End watch - {title['end_watch']}\n"
+    if title['year_end']:
+        text += f"End year - {title['year_end']}\n"
+    if title['status']:
+        text += f"Status - {title['status']}\n"
 
     data = {
         'title_data' : title,
@@ -169,7 +173,7 @@ async def run_update(callback : types.CallbackQuery, state : FSMContext):
     await state.update_data(is_update=True)
     title_id = int(callback.data.split('_')[3])
     await push_to_history(state, F"OPEN_TITLE_{title_id}")
-    title_data = await get_updated_title(callback, state)
+    title_data = await get_updated_title(state)
     await callback.message.edit_text(title_data['text'], reply_markup=get_title_update_panel())
 
 """
@@ -222,7 +226,7 @@ async def save_update_title (callback : types.CallbackQuery, state : FSMContext)
         "X-Telegram-Id": str(callback.from_user.id),
         "Content-Type": "application/json"
     }
-    title_data = await get_updated_title(callback, state)
+    title_data = await get_updated_title(state)
     updated = title_data['updated']
 
     async with aiohttp.ClientSession() as session:
@@ -232,7 +236,7 @@ async def save_update_title (callback : types.CallbackQuery, state : FSMContext)
                         await callback.message.answer("updated")
                         await asyncio.sleep(0.5)
                         await delete_last(state)
-                        title = await get_updated_title(callback, state)
+                        title = await get_updated_title(state)
                         await callback.message.answer(title['text'], reply_markup=get_open_title_panel(title_id))
                     else:
                         await callback.message.answer(f"error {response.status}" )

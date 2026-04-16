@@ -10,7 +10,8 @@ from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
 
 from pyexpat.errors import messages
-from utils import push_to_history, get_updated_title, delete_last
+from utils import (push_to_history, get_updated_title, delete_last,
+                   delete_rated_item, get_title_text)
 from datetime import datetime
 from handlers.start import get_start_menu
 
@@ -32,14 +33,27 @@ class TitleState(StatesGroup):
 async def add_title(callback: types.CallbackQuery, state : FSMContext):
     await callback.answer()
     await state.update_data(is_update=False)
+    await state.update_data(is_was_item=False)
     await push_to_history(state, "START_MENU")
     await callback.message.edit_text("Chose the title category",
         reply_markup=get_category_panel('title'))
 
 @router.callback_query(F.data.contains("title_category_"))
 async def choose_title_category(callback: types.CallbackQuery, state : FSMContext):
+
+    categories = {
+        "title_category_movie" : "MV",
+        "title_category_series" : "SR",
+        "title_category_anime" : "ANM",
+        "title_category_cartoon" : "CRT",
+        "title_category_video" : "VD",
+        "title_category_legal_case" : "LG",
+        "title_category_written_content" : "READ",
+        "title_category_other" : "OTHER"
+    }
+
     await callback.answer()
-    chosen_category = callback.data
+    chosen_category = categories[f'{callback.data}']
     data = await state.get_data()
     is_update = data.get('is_update', False)
     await state.update_data(title_category=chosen_category)
@@ -47,7 +61,7 @@ async def choose_title_category(callback: types.CallbackQuery, state : FSMContex
         await callback.message.answer("Save")
         await asyncio.sleep(0.5)
         await delete_last(state)
-        title_data = await get_updated_title(callback, state)
+        title_data = await get_updated_title(state)
         await callback.message.answer(title_data['text'],reply_markup=get_title_update_panel())
         return
     await push_to_history(state, "TITLE_PANEL_ADD_CATEGORY")
@@ -65,7 +79,7 @@ async def add_title_name(message : types.Message, state : FSMContext):
         await message.answer("Save")
         await asyncio.sleep(0.5)
         await delete_last(state)
-        title_data = await get_updated_title(message, state)
+        title_data = await get_updated_title(state)
         await message.answer(title_data['text'],reply_markup=get_title_update_panel())
         return
     else:
@@ -89,7 +103,7 @@ async def add_title_year_start(message : types.Message, state : FSMContext):
         await message.answer("Save")
         await asyncio.sleep(0.5)
         await delete_last(state)
-        title_data = await get_updated_title(message, state)
+        title_data = await get_updated_title(state)
         await message.answer(title_data['text'], reply_markup=get_title_update_panel())
         return
     else:
@@ -99,15 +113,28 @@ async def add_title_year_start(message : types.Message, state : FSMContext):
 
 @router.message(TitleState.waiting_for_review)
 async def add_title_review(message : types.Message, state : FSMContext):
+
+    categories = {
+        "title_category_movie" : "MV",
+        "title_category_series" : "SR",
+        "title_category_anime" : "ANM",
+        "title_category_cartoon" : "CRT",
+        "title_category_video" : "VD",
+        "title_category_legal_case" : "LG",
+        "title_category_written_content" : "READ",
+        "title_category_other" : "OTHER"
+    }
+
+
     data = await state.get_data()
     is_update = data.get('is_update', False)
-    title_review = message.text
+    title_review = categories.get(f"{message.text}", 'OTHER')
     await state.update_data(title_review=title_review)
     if is_update:
         await message.answer("Save")
         await asyncio.sleep(0.5)
         await delete_last(state)
-        title_data = await get_updated_title(message, state)
+        title_data = await get_updated_title(state)
         await message.answer(title_data['text'], reply_markup=get_title_update_panel())
         return
     else:
@@ -140,11 +167,12 @@ async def add_title_rating(message : types.Message, state : FSMContext):
         await message.answer("Save")
         await asyncio.sleep(0.5)
         await delete_last(state)
-        title_data = await get_updated_title(message, state)
+        title_data = await get_updated_title(state)
         await message.answer(title_data['text'], reply_markup=get_title_update_panel())
         return
     else:
         await push_to_history(state, "TITLE_STATE_WAITING_FOR_RATING")
+
         await message.answer("check", reply_markup=get_confirm_title_panel())
 
 @router.callback_query(F.data == "title_confirm_panel_fix")
@@ -170,7 +198,7 @@ async def choose_title_status(callback: types.CallbackQuery, state : FSMContext)
         await callback.message.answer("Save")
         await asyncio.sleep(0.5)
         await delete_last(state)
-        title_data = await get_updated_title(callback, state)
+        title_data = await get_updated_title(state)
         await callback.message.answer(title_data['text'], reply_markup=get_title_update_panel())
         return
     else:
@@ -197,7 +225,7 @@ async def add_title_start_watch(message : types.Message, state : FSMContext):
             await message.answer("Save")
             await asyncio.sleep(0.5)
             await delete_last(state)
-            title_data = await get_updated_title(message, state)
+            title_data = await get_updated_title(state)
             await message.answer(title_data['text'], reply_markup=get_title_update_panel())
             return
         else:
@@ -229,12 +257,13 @@ async def add_title_end_watch(message : types.Message, state : FSMContext):
             await message.answer("Save")
             await asyncio.sleep(0.5)
             await delete_last(state)
-            title_data = await get_updated_title(message, state)
+            title_data = await get_updated_title(state)
             await message.answer(title_data['text'], reply_markup=get_title_update_panel())
             return
         else:
             await push_to_history(state, "TITLE_STATE_WAITING_FOR_END_WATCH")
-            await message.answer("check", reply_markup=get_confirm_title_panel())
+
+            await message.answer('check', reply_markup=get_confirm_title_panel())
 
     except Exception:
         await message.answer("write correct date dd.mm.yyyy for example 11.04.2026",
@@ -258,11 +287,11 @@ async def add_title_director(message : types.Message, state : FSMContext):
         await message.answer("Save")
         await asyncio.sleep(0.5)
         await delete_last(state)
-        title_data = await get_updated_title(message, state)
+        title_data = await get_updated_title(state)
         await message.answer(title_data['text'], reply_markup=get_title_update_panel())
         return
     else:
-        await push_to_history(state, "TITLE_STATE_WAITING_FOR_DIRECTOR")
+        await push_to_history(state, "TITLE_CONFIRM_PANEL")
         await message.answer("fix panel", reply_markup=get_title_fix_panel())
 
 @router.callback_query(F.data == "title_fix_panel_year_end")
@@ -285,11 +314,11 @@ async def add_title_year_end(message : types.Message, state : FSMContext):
             await message.answer("Save")
             await asyncio.sleep(0.5)
             await delete_last(state)
-            title_data = await get_updated_title(message, state)
+            title_data = await get_updated_title(state)
             await message.answer(title_data['text'], reply_markup=get_title_update_panel())
             return
         else:
-            await push_to_history(state, "TITLE_STATE_WAITING_FOR_YEAR_END")
+            await push_to_history(state, "TITLE_CONFIRM_PANEL")
             await message.answer("fix panel", reply_markup=get_title_fix_panel())
     except Exception:
         await message.answer("Write the correct title's end year for example 1997",
@@ -300,17 +329,6 @@ async def add_title_year_end(message : types.Message, state : FSMContext):
 async def save_title(callback : types.CallbackQuery, state : FSMContext):
     await callback.answer()
 
-    categories = {
-        "title_category_movie" : "MV",
-        "title_category_series" : "SR",
-        "title_category_anime" : "ANM",
-        "title_category_cartoon" : "CRT",
-        "title_category_video" : "VD",
-        "title_category_legal_case" : "LG",
-        "title_category_written_content" : "READ",
-        "title_category_other" : "OTHER"
-    }
-
     statuses = {
         "title_status_panel_DONE" : "DONE",
         "title_status_panel_DROPPED" : "DROP",
@@ -319,7 +337,11 @@ async def save_title(callback : types.CallbackQuery, state : FSMContext):
     }
 
     state_data = await state.get_data()
-    category = categories[state_data['title_category']]
+    is_was_item = state_data.get('is_was_item', False)
+
+    category = state_data['title_category']
+    print("____________________DEBAG__________________")
+    print(category)
     name = state_data['title_name']
     year_start = state_data['title_year_start']
     review = state_data['title_review']
@@ -329,6 +351,7 @@ async def save_title(callback : types.CallbackQuery, state : FSMContext):
     end_watch = ""
     director = ""
     year_end = ""
+
 
     post_data = {
         "name": name,
@@ -369,6 +392,8 @@ async def save_title(callback : types.CallbackQuery, state : FSMContext):
         try:
             async with session.post(url, headers=headers, json=post_data) as response:
                 if response.status in [200, 201]:
+                    if is_was_item:
+                        await delete_rated_item(callback, state)
                     await state.clear()
                     await callback.message.edit_text("Title Saved")
                     await asyncio.sleep(2.5)

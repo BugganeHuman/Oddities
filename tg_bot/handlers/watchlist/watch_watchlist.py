@@ -6,18 +6,20 @@ from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 from keyboards import (get_base_add_panel, get_category_panel,
                         get_watchlist_confirm_panel,get_watch_watchlist_panel,
-                        get_open_item_panel, get_confirm_delete_panel)
+                        get_open_item_panel, get_confirm_delete_panel,
+                        get_item_update_panel)
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
-from utils import push_to_history, delete_last, is_url_for_db
+from utils import push_to_history, delete_last, is_url_for_db, get_updated_item
 from datetime import datetime
 from handlers.start import get_start_menu
 from typing import Union
+from handlers.titles.add_titles import TitleState
 
 router = Router()
 
 async def get_all_items(callback : types.CallbackQuery):
-    url = "http://web:8000/api/watchlist/item"
+    url = "http://web:8000/api/watchlist/item/"
     headers = {
         "X-Bot-Key": str(os.getenv("BOT_MASTER_KEY")),
         "X-Telegram-Id": str(callback.from_user.id),
@@ -162,3 +164,36 @@ async def delete_item(callback : types.CallbackQuery, state : FSMContext):
                         )
         except Exception as e:
             print(e)
+
+@router.callback_query(F.data.contains("panel_update_item_"))
+async def run_update_item(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    await state.update_data(is_update=True)
+    item_id = int(callback.data.split("_")[3])
+    await push_to_history(state, f"OPEN_ITEM_{item_id}")
+    item = await get_updated_item(state)
+    await callback.message.edit_text(item['text'], reply_markup=get_item_update_panel())
+
+@router.callback_query(F.data.contains('rate_item_'))
+async def rate_item(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    item_id = int(callback.data.split('_')[2])
+    await state.update_data(is_update=False)
+    await state.update_data(is_was_item=True)
+    item = await get_updated_item(state)
+    item_data = item['data']
+    await state.update_data(title_category=item_data['category'])
+    await state.update_data(title_name=item_data['name'])
+    await state.update_data(title_year_start=item_data['year_start'])
+    await callback.message.answer("Write the review for title", reply_markup=get_base_add_panel())
+    await state.set_state(TitleState.waiting_for_review)
+
+
+
+    """
+    должен записсать в state все что известно ог выбраном айтеме типо title_category и тд
+    
+    потом переклить состояние на ожиданите ревью
+    
+    и потом если чел сохранил тайтел удалить из вотчлиста
+    """
