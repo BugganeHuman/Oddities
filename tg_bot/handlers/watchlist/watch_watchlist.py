@@ -209,6 +209,34 @@ async def update_item(callback : types.CallbackQuery, state : FSMContext):
     if updating == 'category':
         await callback.message.answer(f'Chose new category for Item', reply_markup=get_category_panel('watchlist'))
 
+@router.callback_query(F.data == 'save_updated_item')
+async def save_updated_item(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    data = await state.get_data()
+    item_id = data.get('item_id')
+    url = f"http://web:8000/api/watchlist/item/{item_id}/"
+    headers = {
+        "X-Bot-Key": str(os.getenv("BOT_MASTER_KEY")),
+        "X-Telegram-Id": str(callback.from_user.id),
+        "Content-Type": "application/json"
+    }
+    item_data = await get_updated_item(state)
+    updated = item_data['updated']
+
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.patch(url, headers=headers, json=updated) as response:
+                    if response.status in [200, 204]:
+                        await callback.message.answer("updated")
+                        await asyncio.sleep(0.5)
+                        await delete_last(state)
+                        item = await get_updated_item(state)
+                        await callback.message.answer(item['text'], reply_markup=get_open_item_panel(item_id))
+                    else:
+                        await callback.message.answer(f"error {response.status}" )
+                        #await callback.message.answer(f"{await response.json()}")
+        except Exception as e:
+            print(e)
 
 
 
