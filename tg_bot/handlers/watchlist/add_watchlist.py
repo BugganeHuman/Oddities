@@ -4,14 +4,14 @@ import asyncio
 import aiohttp
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
+from celery.utils.functional import pass1
 from keyboards import (get_base_add_panel, get_category_panel,
-                        get_watchlist_confirm_panel)
+                        get_watchlist_confirm_panel, get_item_update_panel)
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
-from utils import push_to_history, delete_last, is_url_for_db
+from utils import push_to_history, delete_last, is_url_for_db, get_updated_item
 from datetime import datetime
 from handlers.start import get_start_menu
-
 
 router = Router()
 
@@ -52,7 +52,13 @@ async def choose_item_category(callback : types.CallbackQuery, state : FSMContex
     data = await state.get_data()
     is_update = data.get('is_update', False)
     if is_update:
-        pass
+        await callback.message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        item_data = await get_updated_item(state)
+        await callback.message.answer(item_data['text'], reply_markup=get_item_update_panel())
+        return
+
     else:
         await push_to_history(state, 'WATCHLIST_PANEL_ADD_CATEGORY')
         await state.set_state(WatchlistState.waiting_for_name)
@@ -66,7 +72,12 @@ async def add_item_name(message : types.Message, state : FSMContext):
     is_update = data.get('is_update', False)
     await state.update_data(item_name=item_name)
     if is_update:
-        pass
+        await message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        item_data = await get_updated_item(state)
+        await message.answer(item_data['text'], reply_markup=get_item_update_panel())
+        return
     else:
         await push_to_history(state, 'WATCHLIST_STATE_WAITING_FOR_NAME')
         await message.answer("Write the start year of item",
@@ -86,7 +97,12 @@ async def add_item_year_start(message : types.Message, state : FSMContext):
         return
     await state.update_data(item_year_start=year_start)
     if is_update:
-        pass
+        await message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        item_data = await get_updated_item(state)
+        await message.answer(item_data['text'], reply_markup=get_item_update_panel())
+        return
     else:
         await push_to_history(state, 'WATCHLIST_STATE_WAITING_FOR_YEAR_START')
         await message.answer('confirm panel', reply_markup=get_watchlist_confirm_panel())
@@ -113,7 +129,12 @@ async def add_item_link(message : types.Message, state : FSMContext):
     else:
         await state.update_data(item_link=link)
     if is_update:
-        pass
+        await message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        item_data = await get_updated_item(state)
+        await message.answer(item_data['text'], reply_markup=get_item_update_panel())
+        return
     else:
         await push_to_history(state, 'WATCHLIST_STATE_WAITING_FOR_LINK')
         await message.answer("confirm panel", reply_markup=get_watchlist_confirm_panel())
@@ -138,7 +159,12 @@ async def add_item_note(message :  types.Message, state : FSMContext):
     else:
         await state.update_data(item_note=note)
     if is_update:
-        pass
+        await message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        item_data = await get_updated_item(state)
+        await message.answer(item_data['text'], reply_markup=get_item_update_panel())
+        return
     else:
         await push_to_history(state, "WATCHLIST_STATE_WAITING_FOR_NOTE")
         await message.answer("confirm panel", reply_markup=get_watchlist_confirm_panel())
@@ -165,7 +191,12 @@ async def add_item_year_end(message : types.Message, state : FSMContext):
         return
     await state.update_data(item_year_end=year_end)
     if is_update:
-        pass
+        await message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        item_data = await get_updated_item(state)
+        await message.answer(item_data['text'], reply_markup=get_item_update_panel())
+        return
     else:
         await push_to_history(state, 'WATCHLIST_STATE_WAITING_FOR_YEAR_END')
         await message.answer("confirm panel", reply_markup=get_watchlist_confirm_panel())
@@ -189,10 +220,118 @@ async def add_item_director(message : types.Message, state : FSMContext):
         return
     await state.update_data(item_director=director)
     if is_update:
-        pass
+        await message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        item_data = await get_updated_item(state)
+        await message.answer(item_data['text'], reply_markup=get_item_update_panel())
+        return
     else:
         await push_to_history(state, "WATCHLIST_STATE_WAITING_FOR_DIRECTOR")
         await message.answer("confirm panel", reply_markup=get_watchlist_confirm_panel())
+
+@router.message(WatchlistState.waiting_for_synopsis)
+async def add_item_synopsis(message : types.Message, state : FSMContext):
+    synopsis = message.text
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
+    if len(synopsis) > 2000:
+        await message.answer("Write the item's Synopsis, max length = 2000",
+                            reply_markup=get_base_add_panel())
+        await state.set_state(WatchlistState.waiting_for_synopsis)
+        return
+    await state.update_data(item_synopsis=synopsis)
+    if is_update:
+        await message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        item_data = await get_updated_item(state)
+        await message.answer(item_data['text'], reply_markup=get_item_update_panel())
+        return
+    else:
+        pass
+
+@router.message(WatchlistState.waiting_for_runtime)
+async def add_item_runtime(message : types.Message, state : FSMContext):
+    runtime = message.text
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
+    try:
+        if int(runtime) % 1 != 0:
+            await message.answer("Write the item's runtime for example 90 ",
+                                reply_markup=get_base_add_panel())
+            await state.set_state(WatchlistState.waiting_for_runtime)
+            return
+    except Exception:
+        await message.answer("Write the item's runtime for example 90 ",
+                             reply_markup=get_base_add_panel())
+        await state.set_state(WatchlistState.waiting_for_runtime)
+        return
+    await state.update_data(item_runtime=int(runtime))
+    if is_update:
+        await message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        item_data = await get_updated_item(state)
+        await message.answer(item_data['text'], reply_markup=get_item_update_panel())
+        return
+    else:
+        pass
+
+
+@router.message(WatchlistState.waiting_for_episodes)
+async def add_title_episodes(message : types.Message, state : FSMContext):
+    episodes = message.text
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
+    try:
+        if int(episodes) % 1 != 0:
+            await message.answer("Write the item's amount of episodes for example 10 ",
+                                reply_markup=get_base_add_panel())
+            await state.set_state(WatchlistState.waiting_for_episodes)
+            return
+    except Exception:
+        await message.answer("Write the item's amount of episodes for example 10 ",
+                            reply_markup=get_base_add_panel())
+        await state.set_state(WatchlistState.waiting_for_episodes)
+        return
+    await state.update_data(item_episodes=int(episodes))
+    if is_update:
+        await message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        item_data = await get_updated_item(state)
+        await message.answer(item_data['text'], reply_markup=get_item_update_panel())
+        return
+    else:
+        pass
+
+@router.message(WatchlistState.waiting_for_seasons)
+async def add_title_seasons(message : types.Message, state : FSMContext):
+    seasons = message.text
+    data = await state.get_data()
+    is_update = data.get('is_update', False)
+    try:
+        if int(seasons) % 1 != 0:
+            await message.answer("Write the item's amount of seasons for example 7 ",
+                                reply_markup=get_base_add_panel())
+            await state.set_state(WatchlistState.waiting_for_seasons)
+            return
+    except Exception:
+        await message.answer("Write the item's amount of seasons for example 7 ",
+                             reply_markup=get_base_add_panel())
+        await state.set_state(WatchlistState.waiting_for_seasons)
+        return
+    await state.update_data(item_seasons=int(seasons))
+    if is_update:
+        await message.answer("Save")
+        await asyncio.sleep(0.5)
+        await delete_last(state)
+        item_data = await get_updated_item(state)
+        await message.answer(item_data['text'], reply_markup=get_item_update_panel())
+        return
+    else:
+        pass
 
 @router.callback_query(F.data == "confirm_watchlist_panel_save")
 async def save_item(callback : types.CallbackQuery, state : FSMContext):

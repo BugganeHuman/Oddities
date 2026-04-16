@@ -4,7 +4,8 @@ import aiohttp
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from keyboards import (get_start_panel, get_confirm_title_panel,
-                       get_title_status_panel, get_title_update_panel)
+                       get_title_status_panel, get_title_update_panel,
+                       get_item_update_panel)
 from aiogram.fsm.state import StatesGroup, State
 from handlers.start import get_start_menu
 from handlers.titles.add_titles import add_title
@@ -134,3 +135,9 @@ async def to_back(callback : types.CallbackQuery, state : FSMContext):
         data = await state.get_data()
         item = await get_updated_item(state)
         await callback.message.edit_text(item['text'], reply_markup=get_open_item_panel(item_id))
+    elif last_panel.startswith("ITEM_UPDATE_PANEL_"):
+        item_id = int(last_panel.split('_')[3])
+        item = await get_updated_item(state)
+        print('elif last_panel == "ITEM_UPDATE_PANEL_"')
+        await callback.message.edit_text(item['text'],
+                reply_markup=get_item_update_panel())

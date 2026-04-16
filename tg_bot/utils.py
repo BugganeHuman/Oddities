@@ -17,6 +17,8 @@ async def push_to_history(state : FSMContext, screen_id : str):
     data = await state.get_data()
     history = data.get('history', [])
     history.append(screen_id)
+    print("---------DEBAG---------")
+    print(history)
     await state.update_data(history=history)
 
 async def get_title_text(state):
@@ -98,7 +100,6 @@ async def get_updated_title(state: FSMContext):
     director = state_data.get("title_director", title['director'])
     start_watch = state_data.get("title_start_watch", title['start_watch'])
     end_watch = state_data.get("title_end_watch", title['end_watch'])
-    print(title)
 
     text = (f"{name}  {year_start} | {category}\n"
             f"rating - {rating}\n\n"

@@ -15,6 +15,7 @@ from datetime import datetime
 from handlers.start import get_start_menu
 from typing import Union
 from handlers.titles.add_titles import TitleState
+from handlers.watchlist.add_watchlist import WatchlistState
 
 router = Router()
 
@@ -188,12 +189,26 @@ async def rate_item(callback : types.CallbackQuery, state : FSMContext):
     await callback.message.answer("Write the review for title", reply_markup=get_base_add_panel())
     await state.set_state(TitleState.waiting_for_review)
 
+@router.callback_query(F.data.contains('update_item_'))
+async def update_item(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    data = await state.get_data()
+    history = data.get('history', [])
+    history_item = f"ITEM_UPDATE_PANEL_{data['item_id']}"
+    print('CHECK')
+    if not history[-1] == history_item:
+        print(history_item)
+        print('GOOD')
+        await push_to_history(state, history_item)
+    print('FINISH')
+    updating = callback.data.split("_", 2)[2]
+    if updating != 'category':
+        await callback.message.answer(f'Write new {updating} for Item', reply_markup=get_base_add_panel())
+        watchlist_state = f'WatchlistState.waiting_for_{updating}'
+        await state.set_state(eval(watchlist_state))
+    if updating == 'category':
+        await callback.message.answer(f'Chose new category for Item', reply_markup=get_category_panel('watchlist'))
 
 
-    """
-    должен записсать в state все что известно ог выбраном айтеме типо title_category и тд
-    
-    потом переклить состояние на ожиданите ревью
-    
-    и потом если чел сохранил тайтел удалить из вотчлиста
-    """
+
+

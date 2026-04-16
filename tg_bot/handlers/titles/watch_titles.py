@@ -176,28 +176,8 @@ async def run_update(callback : types.CallbackQuery, state : FSMContext):
     title_data = await get_updated_title(state)
     await callback.message.edit_text(title_data['text'], reply_markup=get_title_update_panel())
 
-"""
-@router.callback_query(F.data == 'update_title_review')
-async def update_review(callback : types.CallbackQuery, state : FSMContext):
-    await callback.answer()
-    data = await state.get_data()
-    await push_to_history(state, f"TITLE_UPDATE_PANEL_{data['title_id']}")
-    await callback.message.answer('Write new review for Title', reply_markup=get_base_add_panel())
-    await state.set_state(TitleState.waiting_for_review)
-
-@router.callback_query(F.data == 'update_title_rating')
-async def update_rating(callback : types.CallbackQuery, state : FSMContext):
-    await callback.answer()
-    data = await state.get_data()
-    await push_to_history(state, f"TITLE_UPDATE_PANEL_{data['title_id']}")
-    await callback.message.answer('Write new rating for Title', reply_markup=get_base_add_panel())
-    await state.set_state(TitleState.waiting_for_rating)
-
-#@router.callback_query(F.data == "update_title_start_watch"):
-"""
-
 @router.callback_query(F.data.contains("update_title_"))
-async def update(callback : types.CallbackQuery, state : FSMContext):
+async def update_title(callback : types.CallbackQuery, state : FSMContext):
     await callback.answer()
     data = await state.get_data()
     history = data.get('history', [])
@@ -216,7 +196,7 @@ async def update(callback : types.CallbackQuery, state : FSMContext):
         await callback.message.answer(f'Chose new status for Title', reply_markup=get_title_status_panel())
 
 @router.callback_query(F.data == "save_updated_title")
-async def save_update_title (callback : types.CallbackQuery, state : FSMContext):
+async def save_updated_title (callback : types.CallbackQuery, state : FSMContext):
     await callback.answer()
     data = await state.get_data()
     title_id = data.get('title_id')
