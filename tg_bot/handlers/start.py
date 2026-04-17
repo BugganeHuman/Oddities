@@ -46,6 +46,7 @@ async def start(message: types.Message):
     CURSOR.execute("INSERT INTO users (user_id, password) VALUES (?, ?)",
             (user_id, user_password))
 
+    CONN.commit()
     data = {
         "username" : message.from_user.username,
         "telegram_id" : user_id,

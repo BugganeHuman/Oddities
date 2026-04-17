@@ -1,5 +1,5 @@
 from rest_framework import generics
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny
 from .serializers import RegisterSerializer, UserSerializer
 from .models import User
@@ -13,7 +13,10 @@ from titles.serializers import TitleSerializer
 from watchlist.models import WatchlistItem
 from watchlist.serializers import WatchlistItemSerializer
 from .tasks import hard_delete_user
-
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
+import users.authentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -22,6 +25,8 @@ class RegisterView(generics.CreateAPIView):
 
 class CorrectTokenObtainPairView(TokenObtainPairView):
     permission_classes = [AllowAny]
+    #authentication_classes = [JWTAuthentication, users.authentication.BotAuthentication]
+
 
 
 @api_view(['GET'])
@@ -43,6 +48,8 @@ def ping(request):
 
 
 @api_view(['DELETE'])
+@authentication_classes([JWTAuthentication, users.authentication.BotAuthentication])
+@permission_classes([IsAuthenticated])
 def soft_delete_user(request):
     username = request.data.get('username')
     password = request.data.get('password')
@@ -84,6 +91,8 @@ def reactivate_user(request):
     return Response({"status" : "error"})
 
 @api_view(['PUT'])
+@authentication_classes([JWTAuthentication, users.authentication.BotAuthentication])
+@permission_classes([IsAuthenticated])
 def toggle_visibility(request):
     password = request.data.get("password")
     titles_visibility = request.data.get("titles_visibility")
@@ -135,7 +144,9 @@ def get_user_records(request):
 
     return Response(result)
 
-@api_view(['GET']) #need to rewrite
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication, users.authentication.BotAuthentication])
+@permission_classes([IsAuthenticated])
 def get_me(request):
     user = request.user
 

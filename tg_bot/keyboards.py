@@ -341,3 +341,33 @@ def get_item_update_panel():
     )
     
     return builder.as_markup()
+
+def get_account_actions_panel():
+    builder = InlineKeyboardBuilder()
+
+    builder.row(
+        types.InlineKeyboardButton(text='👤 User Info', callback_data='user_me')
+    )
+    builder.row(
+        types.InlineKeyboardButton(text='🔑 Show Password', callback_data='user_show_password')
+    )
+    builder.row(
+        types.InlineKeyboardButton(text='👁‍ Toggle Visibility', callback_data='user_toggle_visibility')
+    )
+    builder.row(
+        types.InlineKeyboardButton(text='⚰️ Delete Account', callback_data='user_delete_account')
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu")
+    )
+    return builder.as_markup()
+
+def get_toggle_visibility_panel():
+    builder = InlineKeyboardBuilder()
+
+    builder.row(
+
+    )
+
+
+    return builder.as_markup()

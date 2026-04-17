@@ -15,7 +15,7 @@ from keyboards import (get_base_add_panel, get_category_panel,
                        get_confirm_title_panel, get_title_fix_panel,
                        get_watch_titles_panel, get_open_title_panel,
                        get_watchlist_confirm_panel,get_watch_watchlist_panel,
-                       get_open_item_panel)
+                       get_open_item_panel, get_account_actions_panel)
 from utils import push_to_history, get_updated_title, get_updated_item
 from handlers.watchlist.add_watchlist import WatchlistState
 from handlers.watchlist.watch_watchlist import get_all_items
@@ -141,3 +141,5 @@ async def to_back(callback : types.CallbackQuery, state : FSMContext):
         print('elif last_panel == "ITEM_UPDATE_PANEL_"')
         await callback.message.edit_text(item['text'],
                 reply_markup=get_item_update_panel())
+    elif last_panel == 'SHOW_ACCOUNT_ACTIONS':
+        await callback.message.edit_text('Account actions', reply_markup=get_account_actions_panel())
