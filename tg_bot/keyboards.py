@@ -386,3 +386,17 @@ def get_toggle_visibility_panel():
     )
 
     return builder.as_markup()
+
+def get_confirm_delete_user_panel():
+    builder = InlineKeyboardBuilder()
+
+    builder.row(
+        types.InlineKeyboardButton(text=f'💀 Yes, delete this account',
+                callback_data='delete_user'),
+        types.InlineKeyboardButton(text="🛡️ No, back off", callback_data='to_back')
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu"),
+        types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
+    )
+    return builder.as_markup()

@@ -5,7 +5,8 @@ from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 from keyboards import (get_base_add_panel, get_category_panel,
                         get_watchlist_confirm_panel, get_item_update_panel,
-                        get_account_actions_panel, get_toggle_visibility_panel)
+                        get_account_actions_panel, get_toggle_visibility_panel,
+                        get_confirm_delete_user_panel)
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
 from utils import push_to_history, delete_last, is_url_for_db, get_updated_item
@@ -120,11 +121,9 @@ async def save_toggle_visibility(callback : types.CallbackQuery, state : FSMCont
     put_data = {
     }
     if titles_visibility:
-        print(1111111)
         print(titles_visibility)
         put_data['titles_visibility'] = titles_visibility
     if watchlist_visibility:
-        print(2222222)
         put_data['watchlist_visibility'] = watchlist_visibility
 
     async with aiohttp.ClientSession() as session:
@@ -133,5 +132,28 @@ async def save_toggle_visibility(callback : types.CallbackQuery, state : FSMCont
                 if response.status in [200, 204, 201]:
                     await callback.message.answer('Done', reply_markup=get_base_add_panel())
         except Exception as e:
-            print('------toggle_visibility_DEBAG-------')
+            print(e)
+
+@router.callback_query(F.data == 'user_delete_account')
+async def show_confirm_delete_account(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    await push_to_history(state, 'SHOW_ACCOUNT_ACTIONS')
+    await callback.message.edit_text('Are you sure to delete you account?',
+                                reply_markup=get_confirm_delete_user_panel())
+
+@router.callback_query(F.data == 'delete_user')
+async def delete_account(callback : types.CallbackQuery):
+    await callback.answer()
+    url = 'http://web:8000/api/users/hard_delete_user/'
+    headers = {
+        "X-Bot-Key" : str(os.getenv("BOT_MASTER_KEY")),
+        "X-Telegram-Id" : str(callback.from_user.id),
+        "Content-Type": "application/json"
+    }
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.delete(url, headers=headers) as response:
+                await callback.message.answer('Your fucking account was deleted, fuck u and never come again')
+
+        except Exception as e:
             print(e)

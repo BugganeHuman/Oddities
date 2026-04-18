@@ -90,6 +90,18 @@ def reactivate_user(request):
 
     return Response({"status" : "error"})
 
+@api_view(['DELETE'])
+@authentication_classes([JWTAuthentication, users.authentication.BotAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_user(request):
+    try:
+        user = request.user
+        user.delete()
+        user.save()
+    except Exception as e:
+        print(e)
+    return Response({'status' : 'done'})
+
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication, users.authentication.BotAuthentication])
 @permission_classes([IsAuthenticated])
