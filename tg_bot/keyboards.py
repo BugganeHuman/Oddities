@@ -366,8 +366,23 @@ def get_toggle_visibility_panel():
     builder = InlineKeyboardBuilder()
 
     builder.row(
-
+        types.InlineKeyboardButton(text='🌐 Do Titles is PUBLIC',
+                callback_data='toggle_visibility_titles_public'),
+        types.InlineKeyboardButton(text='🚫 Do Titles is PRIVATE',
+                callback_data='toggle_visibility_titles_private')
     )
-
+    builder.row(
+        types.InlineKeyboardButton(text='🔓 Do Watchlist is PUBLIC',
+                callback_data='toggle_visibility_watchlist_public'),
+        types.InlineKeyboardButton(text='🔒 Do Watchlist is PRIVATE',
+                callback_data='toggle_visibility_watchlist_private')
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu"),
+        types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="💾 Save", callback_data="save_updated_visibility")
+    )
 
     return builder.as_markup()

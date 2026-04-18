@@ -1,13 +1,11 @@
-from aiogram import Router, F, types
 import os
 import asyncio
 import aiohttp
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
-from celery.utils.functional import pass1
 from keyboards import (get_base_add_panel, get_category_panel,
                         get_watchlist_confirm_panel, get_item_update_panel,
-                        get_account_actions_panel)
+                        get_account_actions_panel, get_toggle_visibility_panel)
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
 from utils import push_to_history, delete_last, is_url_for_db, get_updated_item
@@ -77,3 +75,63 @@ async def show_password(callback : types.CallbackQuery, state : FSMContext):
 @router.callback_query(F.data == 'user_toggle_visibility')
 async def show_toggle_visibility(callback : types.CallbackQuery, state : FSMContext):
     await callback.answer()
+    await push_to_history(state, 'SHOW_ACCOUNT_ACTIONS')
+    url = 'http://web:8000/api/users/get_user_visibility/'
+    headers = {
+        "X-Bot-Key" : str(os.getenv("BOT_MASTER_KEY")),
+        "X-Telegram-Id" : str(callback.from_user.id),
+        "Content-Type": "application/json"
+    }
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.get(url, headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    text = (f"Titles is public - {data['titles_is_public']}\n\n"
+                            f"Watchlist is public - {data['watchlist_is_public']}")
+                    await callback.message.edit_text(text, reply_markup=get_toggle_visibility_panel() )
+        except Exception as e:
+            print(e)
+
+@router.callback_query(F.data.contains('toggle_visibility_'))
+async def toggle_visibility(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    kind = callback.data.split('_')[2]
+    visibility = callback.data.split('_')[3]
+    if kind == 'titles':
+        await state.update_data(titles_visibility=visibility)
+    elif kind == 'watchlist':
+        await state.update_data(watchlist_visibility=visibility)
+    await callback.message.answer(f'Changed {kind} = {visibility}')
+
+@router.callback_query(F.data == "save_updated_visibility")
+async def save_toggle_visibility(callback : types.CallbackQuery, state : FSMContext):
+    await callback.answer()
+    url = 'http://web:8000/api/users/toggle_visibility/'
+    headers = {
+        "X-Bot-Key" : str(os.getenv("BOT_MASTER_KEY")),
+        "X-Telegram-Id" : str(callback.from_user.id),
+        "Content-Type": "application/json"
+    }
+    data = await state.get_data()
+    titles_visibility = data.get('titles_visibility', '')
+    watchlist_visibility = data.get('watchlist_visibility', '')
+
+    put_data = {
+    }
+    if titles_visibility:
+        print(1111111)
+        print(titles_visibility)
+        put_data['titles_visibility'] = titles_visibility
+    if watchlist_visibility:
+        print(2222222)
+        put_data['watchlist_visibility'] = watchlist_visibility
+
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.put(url, headers=headers, json=put_data) as response:
+                if response.status in [200, 204, 201]:
+                    await callback.message.answer('Done', reply_markup=get_base_add_panel())
+        except Exception as e:
+            print('------toggle_visibility_DEBAG-------')
+            print(e)

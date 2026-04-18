@@ -90,32 +90,44 @@ def reactivate_user(request):
 
     return Response({"status" : "error"})
 
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication, users.authentication.BotAuthentication])
+@permission_classes([IsAuthenticated])
+def get_user_visibility(request):
+    titles_visibility = request.user.titles_is_public
+    watchlist_visibility = request.user.watchlist_is_public
+    return Response({
+        'titles_is_public' : titles_visibility,
+        'watchlist_is_public' : watchlist_visibility
+    })
+
 @api_view(['PUT'])
 @authentication_classes([JWTAuthentication, users.authentication.BotAuthentication])
 @permission_classes([IsAuthenticated])
 def toggle_visibility(request):
-    password = request.data.get("password")
+    #password = request.data.get("password")
     titles_visibility = request.data.get("titles_visibility")
     watchlist_visibility = request.data.get("watchlist_visibility")
     user = request.user
-    if request.user.check_password(password):
-        if titles_visibility == 'public' and not user.titles_is_public:
-            user.titles_is_public = True
-            user.save()
-        elif titles_visibility == 'private' and user.titles_is_public:
-            user.is_public = False
-            user.save()
+    #print('-------WEB DEBAG-----')
+    #if request.user.check_password(password):
+    if titles_visibility == 'public' and not user.titles_is_public:
+        user.titles_is_public = True
+        user.save()
+    elif titles_visibility == 'private' and user.titles_is_public:
+        user.titles_is_public = False
+        user.save()
 
-        if watchlist_visibility == 'public' and not user.watchlist_is_public:
-            user.watchlist_is_public = True
-            user.save()
-        elif watchlist_visibility == 'private' and user.watchlist_is_public:
-            user.watchlist_is_public = False
-            user.save()
+    if watchlist_visibility == 'public' and not user.watchlist_is_public:
+        user.watchlist_is_public = True
+        user.save()
+    elif watchlist_visibility == 'private' and user.watchlist_is_public:
+        user.watchlist_is_public = False
+        user.save()
 
-        return Response({"status" : "done"})
+    return Response({"status" : "done"})
 
-    return Response({"status": "error"})
+    #return Response({"status": "error"})
 
 
 @api_view(['GET'])
