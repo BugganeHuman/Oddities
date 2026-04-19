@@ -142,7 +142,7 @@ async def show_confirm_delete_account(callback : types.CallbackQuery, state : FS
                                 reply_markup=get_confirm_delete_user_panel())
 
 @router.callback_query(F.data == 'delete_user')
-async def delete_account(callback : types.CallbackQuery):
+async def delete_account(callback : types.CallbackQuery, state : FSMContext):
     await callback.answer()
     url = 'http://web:8000/api/users/hard_delete_user/'
     headers = {
@@ -154,6 +154,6 @@ async def delete_account(callback : types.CallbackQuery):
         try:
             async with session.delete(url, headers=headers) as response:
                 await callback.message.answer('Your fucking account was deleted, fuck u and never come again')
-
+                await state.clear()
         except Exception as e:
             print(e)

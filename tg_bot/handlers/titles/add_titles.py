@@ -8,8 +8,6 @@ from keyboards import (get_base_add_panel, get_category_panel,
                        get_title_status_panel, get_title_update_panel)
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
-
-from pyexpat.errors import messages
 from utils import (push_to_history, get_updated_title, delete_last,
                    delete_rated_item, get_title_text)
 from datetime import datetime
@@ -113,22 +111,9 @@ async def add_title_year_start(message : types.Message, state : FSMContext):
 
 @router.message(TitleState.waiting_for_review)
 async def add_title_review(message : types.Message, state : FSMContext):
-
-    categories = {
-        "title_category_movie" : "MV",
-        "title_category_series" : "SR",
-        "title_category_anime" : "ANM",
-        "title_category_cartoon" : "CRT",
-        "title_category_video" : "VD",
-        "title_category_legal_case" : "LG",
-        "title_category_written_content" : "READ",
-        "title_category_other" : "OTHER"
-    }
-
-
     data = await state.get_data()
     is_update = data.get('is_update', False)
-    title_review = categories.get(f"{message.text}", 'OTHER')
+    title_review = message.text
     await state.update_data(title_review=title_review)
     if is_update:
         await message.answer("Save")
@@ -160,7 +145,6 @@ async def add_title_rating(message : types.Message, state : FSMContext):
                             reply_markup=get_base_add_panel())
         await state.set_state(TitleState.waiting_for_rating)
         return
-
 
     await state.update_data(title_rating=title_rating)
     if is_update:
@@ -340,8 +324,6 @@ async def save_title(callback : types.CallbackQuery, state : FSMContext):
     is_was_item = state_data.get('is_was_item', False)
 
     category = state_data['title_category']
-    print("____________________DEBAG__________________")
-    print(category)
     name = state_data['title_name']
     year_start = state_data['title_year_start']
     review = state_data['title_review']
@@ -396,13 +378,10 @@ async def save_title(callback : types.CallbackQuery, state : FSMContext):
                         await delete_rated_item(callback, state)
                     await state.clear()
                     await callback.message.edit_text("Title Saved")
-                    await asyncio.sleep(2.5)
+                    await asyncio.sleep(2)
                     await get_start_menu(callback)
                 else:
                     await callback.message.answer(f"error {await response.json()}")
         except Exception:
             await callback.message.answer("error", reply_markup=get_confirm_title_panel())
 
-
-    #await callback.message.answer(f'{category} {name} {year_start} {review} {rating} {status}')
-    # конце надо сохронить на серваке запись - отчистить state.get_data() - отправить на start_panel
