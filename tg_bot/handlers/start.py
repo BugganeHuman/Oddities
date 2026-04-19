@@ -1,3 +1,5 @@
+import json
+
 from aiogram import Router, F, types
 import secrets
 import sqlite3
@@ -5,8 +7,12 @@ from aiogram.filters import Command
 import aiohttp
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
-from keyboards import get_start_panel, get_confirm_title_panel
+from keyboards import (get_start_panel, get_confirm_title_panel,
+                        get_home_btn_panel)
 from aiogram.fsm.state import StatesGroup, State
+from aiogram.types import BufferedInputFile
+import os
+import asyncio
 
 
 router = Router()
@@ -63,3 +69,26 @@ async def start(message: types.Message):
             else:
                 await message.answer(f"error in register ")
 
+@router.message(Command('backup'))
+async def backup(message : types.Message):
+    url = 'http://web:8000/api/backup/'
+    headers = {
+        "X-Bot-Key" : str(os.getenv("BOT_MASTER_KEY")),
+        "X-Telegram-Id" : str(message.from_user.id),
+        "Content-Type": "application/json"
+    }
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.get(url, headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    json_string = json.dumps(data, indent=4, ensure_ascii=False)
+                    json_bytes = json_string.encode('utf-8')
+                    file = BufferedInputFile(json_bytes,
+                        filename=f'oddities_backup_{message.from_user.username}')
+                    await message.answer_document(file, caption='Your Backup')
+                    await asyncio.sleep(3)
+                    await message.answer("Welcome to Oddities, bot for help you with content",
+                                            reply_markup=get_start_panel(),)
+        except Exception as e:
+            print(e)

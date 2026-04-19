@@ -400,3 +400,11 @@ def get_confirm_delete_user_panel():
         types.InlineKeyboardButton(text="⬅️ back", callback_data="to_back")
     )
     return builder.as_markup()
+
+def get_home_btn_panel():
+    builder = InlineKeyboardBuilder()
+
+    builder.row(
+        types.InlineKeyboardButton(text="🏠 Start Menu", callback_data="to_start_menu")
+    )
+    return builder.as_markup()

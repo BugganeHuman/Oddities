@@ -17,6 +17,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 import users.authentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
+from datetime import datetime
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -35,17 +36,22 @@ def ping(request):
 
     return Response ({'status' : 'ok'})
 
-
-"""
-надо - когда юзер отправляет правельную форму, в бд меняется: status = frozen, delete_date = +week
-
-и тоесть юзер не может зайти на свой аккаунт, он может только перейти по эндпоинту востоновления 
-(он AllowAny) и там ввести юзернейм и пароль и are_you_sure : yes и тогда акк востонавливается
-
-когда пришла дата и время delete_date = +week аккаунт удаляется (запись из бд)
-
-"""
-
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication, users.authentication.BotAuthentication])
+@permission_classes([IsAuthenticated])
+def backup(request):
+    user = request.user
+    titles = list(Title.objects.filter(owner=user).values())
+    watchlist = list(WatchlistItem.objects.filter(owner=user).values())
+    now = datetime.now()
+    time = now.strftime('%d.%m.%Y')
+    data = {
+        'username' : request.user.username,
+        'titles' : titles,
+        'watchlist' : watchlist,
+        'timestamp' : time
+    }
+    return Response(data, status=200)
 
 @api_view(['DELETE'])
 @authentication_classes([JWTAuthentication, users.authentication.BotAuthentication])
