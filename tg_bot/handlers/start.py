@@ -85,7 +85,7 @@ async def backup(message : types.Message):
                     json_string = json.dumps(data, indent=4, ensure_ascii=False)
                     json_bytes = json_string.encode('utf-8')
                     file = BufferedInputFile(json_bytes,
-                        filename=f'oddities_backup_{message.from_user.username}')
+                        filename=f'oddities_backup_{message.from_user.username}.json')
                     await message.answer_document(file, caption='Your Backup')
                     await asyncio.sleep(3)
                     await message.answer("Welcome to Oddities, bot for help you with content",

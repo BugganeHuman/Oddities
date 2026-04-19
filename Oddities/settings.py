@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'titles',
     'watchlist',
     'users',
+    'criticism',
 ]
 
 MIDDLEWARE = [
@@ -43,8 +44,7 @@ ROOT_URLCONF = 'Oddities.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

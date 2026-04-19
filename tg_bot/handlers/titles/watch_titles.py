@@ -150,7 +150,7 @@ async def delete_title(callback : types.CallbackQuery, state : FSMContext):
             async with session.delete(url, headers=headers) as response:
                 if response.status == 204:
                     await callback.message.edit_text('Title Have Deleted')
-                    await asyncio.sleep(3)
+                    await asyncio.sleep(2)
                     await callback.message.edit_text(
                     f"Page {page}",
                         reply_markup=get_watch_titles_panel(await get_all_titles(callback), page=page)

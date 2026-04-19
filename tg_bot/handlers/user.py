@@ -15,16 +15,6 @@ from handlers.start import get_start_menu
 import sqlite3
 
 
-"""
-функция me
-
-функция показать пароль
-
-изменить настройки кофиденциальности для вотчлиста/тайтлов
-
-удалить аккаунт
-
-"""
 router = Router()
 
 @router.callback_query(F.data == "account_actions")

@@ -6,6 +6,7 @@ class User(AbstractUser):
     titles_is_public = models.BooleanField(default=False)
     watchlist_is_public = models.BooleanField(default=False)
     telegram_id = models.BigIntegerField(unique=True, null=True, blank=True)
+    is_king = models.BooleanField(blank=True, null=True, default=False)
 
 """
 
