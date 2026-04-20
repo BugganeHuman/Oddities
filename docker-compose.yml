@@ -1,43 +1,43 @@
-version: '3.8' # Версия формата конфига
+version: '3.8'
 
 services:
-
   db:
     image: postgres:15
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - secret.env
     environment:
       - POSTGRES_DB=oddities_db
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
 
-  # 2. БРОКЕР (Redis) - тот самый "почтовый ящик"
   redis:
     image: redis:7-alpine
 
-  # 3. ТВОЙ DJANGO-ПРОЕКТ
   web:
-    build: . # Собираем образ из нашего Dockerfile в этой папке
+    build: .
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
-      - .:/app # Пробрасываем код внутрь (чтобы изменения в коде подхватывались сразу)
+      - .:/app
     ports:
-      - "8000:8000" # Соединяем порт компа и порт контейнера
+      - "8000:8000"
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
-      - DATABASE_URL=postgres://user:password@db:5432/watchlist_db
+      # ВАЖНО: Тут данные должны совпадать с тем, что в блоке db выше
+      - DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/oddities_db
     depends_on:
       - db
       - redis
 
-  # 4. CELERY WORKER - работяга
   worker:
-    build: . # Используем ТОТ ЖЕ образ, что и для web
+    build: .
     command: celery -A Oddities worker --loglevel=info
     volumes:
       - .:/app
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
+      - DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/oddities_db
     depends_on:
       - redis
       - db
@@ -47,6 +47,8 @@ services:
     command: python bot_main.py
     volumes:
       - ./tg_bot:/app
+      # Пробрасываем папку для базы бота, чтобы sqlite мог создать файл
+      - ./tg_bot/bot_db:/app/bot_db
     working_dir: /app
     env_file:
       - secret.env
@@ -54,6 +56,5 @@ services:
       - web
       - db
 
-# Описываем хранилища данных
 volumes:
   postgres_data:

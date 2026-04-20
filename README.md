@@ -40,7 +40,9 @@ ____
 
 2 - создай secret.env файл, на примере example.env
 
-3 - в терминале из главной деректории проэкта выполни - docker-compose up --build
+2.1 - если надо скачай docker compose (на пример на линуксе это sudo apt install docker-compose)
+
+3 - в терминале из главной деректории проэкта выполни - docker compose --env-file secret.env up --build
 
 4 - в том же терминале - docker-compose exec web python manage.py migrate
 
