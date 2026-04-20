@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'watchlist',
     'users',
     'criticism',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -115,7 +116,14 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Oddities API',
+    'DESCRIPTION': 'Documentation for API Oddities',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False, }
 
 CELERY_BROKER_URL = 'redis://redis:6379'
 CELERY_RESULT_BACKEND = 'redis://redis:6379'
