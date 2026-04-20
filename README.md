@@ -42,12 +42,12 @@ ____
 
 2.1 - если надо скачай docker compose (на пример на линуксе это sudo apt install docker-compose)
 
-3 - в терминале из главной деректории проэкта выполни - docker compose --env-file secret.env up --build
+3 - в терминале из главной деректории проэкта выполни: docker compose --env-file secret.env up --build
 
-4 - в том же терминале - docker-compose exec web python manage.py migrate
+4 - в том же терминале: docker compose exec web python manage.py migrate
 
-5 - создай супер юзера - docker-compose exec web python manage.py createsuperuser
+5 - создай супер юзера: docker compose exec web python manage.py createsuperuser
 
-6 - по адресуу http://localhost:8000/ будут твои эндпоинты,
+6 - по адресуу http://localhost:8000/ будут твои эндпоинты
 
 7 - можешь почитать документацию к API по эндпоинту http://localhost:8000/api/docs/
