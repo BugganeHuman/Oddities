@@ -20,6 +20,7 @@ PyJWT : авторизация.
 ____
 
 технологический стек:
+
 Backend: python 3.14, Django 6.0.2, Django REST Framework 3.16.1
 
 Telegram Bot: Aiogram 3.26.0
