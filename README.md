@@ -45,18 +45,18 @@ ____
 ____
 ## **Install**
 
-- 1 - clone repository: https://github.com/BugganeHuman/Oddities
+1. #### clone repository: https://github.com/BugganeHuman/Oddities
 
-- 2 - create secret.env file, in example -  example.env
+2. #### create secret.env file, in example -  example.env
 
-- 2.1 - if you need, install docker compose (for example - in linux it's  sudo apt install docker-compose)
+3. #### if you need, install docker compose (for example - in linux it's  ```sudo apt install docker-compose```)
 
-- 3 - in the terminal from the main directory of the project, run: docker compose --env-file secret.env up --build
+4. #### in the terminal from the main directory of the project, run: ```docker compose --env-file secret.env up --build```
 
-- 4 - in the same terminal: docker compose exec web python manage.py migrate
+5. #### in the same terminal: ```docker compose exec web python manage.py migrate```
 
-- 5 - create superuser: docker compose exec web python manage.py createsuperuser
+6. #### create superuser: ```docker compose exec web python manage.py createsuperuser```
 
-- 6 - in url http://localhost:8000/ will have your endpoints
+7. #### in url http://localhost:8000/ will have your endpoints
 
-- 7 - you can read the docs for API in this endpoint http://localhost:8000/api/docs/
+8. #### you can read the docs for API in this endpoint http://localhost:8000/api/docs/
