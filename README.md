@@ -1,7 +1,7 @@
 # Oddities
 ____
 ## **About project** 
-#### *This program was created so that all content management would be in one place, eliminating the need to keep licenses in one place and a watchlist in another. It was created simply to make it more convenient, for example, so that when adding a watchlist item, you wouldn't have to enter the director's name, the number of series and episodes - the program does it for you; all you need to know is the title and the initial release year.*
+### *This program was created so that all content management would be in one place, eliminating the need to keep licenses in one place and a watchlist in another. It was created simply to make it more convenient, for example, so that when adding a watchlist item, you wouldn't have to enter the director's name, the number of series and episodes - the program does it for you; all you need to know is the title and the initial release year.*
 
 ### link to tg bot - @Oddities_Diary_Bot
 
