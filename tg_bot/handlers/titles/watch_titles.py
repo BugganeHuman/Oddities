@@ -59,9 +59,9 @@ async def get_title(event : Union[types.Message, types.CallbackQuery], title_id)
 
     text = (f"{title['name']}  {title['year_start']} | {title['category']}\n"
             f"rating - {title['rating']}\n\n"
-            f"_____________________________________________________\n"
+            f"___________________________\n"
             f"{title['review']}\n"
-            f"_____________________________________________________\n\n"
+            f"___________________________\n\n"
             )
     if title['director']:
         text += f"Director - {title['director']}\n"
