@@ -4,6 +4,7 @@ from typing import Union
 import re
 import os
 import aiohttp
+from datetime import datetime
 
 async def delete_last(state : FSMContext):
     data = await state.get_data()
@@ -112,10 +113,19 @@ async def get_updated_title(state: FSMContext):
         updated['director'] = director
         text += f"Director - {director}\n"
     if "title_start_watch" in state_data or title['start_watch']:
-        updated['start_watch'] = start_watch
+        if '-' in start_watch:
+            updated['start_watch'] = start_watch
+        else:
+            date_obj = datetime.strptime(start_watch, '%d.%m.%Y').date()
+            updated['start_watch'] = date_obj.strftime('%Y-%m-%d')
         text += f"Start watch - {start_watch}\n"
+
     if "title_end_watch" in state_data or title['end_watch']:
-        updated['end_watch'] = end_watch
+        if '-' in end_watch:
+            updated['end_watch'] = end_watch
+        else:
+            date_obj = datetime.strptime(end_watch, '%d.%m.%Y').date()
+            updated['end_watch'] = date_obj.strftime('%Y-%m-%d')
         text += f"End watch - {end_watch}\n"
     if "title_year_end" in state_data or title['year_end']:
         updated['year_end'] = year_end
