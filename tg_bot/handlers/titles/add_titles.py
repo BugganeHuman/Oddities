@@ -9,7 +9,7 @@ from keyboards import (get_base_add_panel, get_category_panel,
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
 from utils import (push_to_history, get_updated_title, delete_last,
-                   delete_rated_item, get_title_text)
+                   delete_rated_item, get_title_text, send_smart_message)
 from datetime import datetime
 from handlers.start import get_start_menu
 
@@ -126,7 +126,8 @@ async def add_title_review(message : types.Message, state : FSMContext):
         await asyncio.sleep(0.5)
         await delete_last(state)
         title_data = await get_updated_title(state)
-        await message.answer(title_data['text'], reply_markup=get_title_update_panel())
+        await send_smart_message(message, title_data['text'], get_title_update_panel())
+        #await message.answer(title_data['text'], reply_markup=get_title_update_panel())
         return
     else:
         await push_to_history(state, "TITLE_STATE_WAITING_FOR_REVIEW")
