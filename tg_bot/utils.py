@@ -149,6 +149,11 @@ async def get_updated_title(state: FSMContext):
         "text" : str(text),
         "updated" : updated
     }
+    await state.update_data(title_review='')
+    """
+    строчка что выше нужна ибо без нее когдла аптдейтишь ревью у тайтла оно не меняется
+    а просто плюсуелтся к существующему
+    """
     return result
 
 
