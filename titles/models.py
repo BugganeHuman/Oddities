@@ -48,3 +48,6 @@ class Title(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(10), rating_validator])
 
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="titles")
+
+    def __str__(self):
+        return f"{self.name} - {self.rating}"
